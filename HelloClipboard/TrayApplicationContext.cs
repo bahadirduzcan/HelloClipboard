@@ -1,4 +1,5 @@
-﻿using System;
+﻿using HelloClipboard.Utils;
+using System;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Linq;
@@ -132,6 +133,22 @@ namespace HelloClipboard
 		{
 			if (string.IsNullOrWhiteSpace(content) && image == null)
 				return;
+
+			if (image != null)
+			{
+				if (_clipboardCache.Any())
+				{
+					var lastItem = _clipboardCache.Last();
+
+					if (lastItem.ImageContent != null)
+					{
+						if (ImageAnalizer.AreImagesEqual(image, lastItem.ImageContent))
+						{
+							return;
+						}
+					}
+				}
+			}
 
 			if (SettingsLoader.Current.PreventClipboardDuplication && image == null)
 			{

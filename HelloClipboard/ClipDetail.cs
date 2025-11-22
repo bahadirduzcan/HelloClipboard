@@ -52,10 +52,12 @@ namespace HelloClipboard
 			panel1.Visible = true;
 
 			// PictureBox autosize moduna alınır
-			pictureBox1.SizeMode = PictureBoxSizeMode.AutoSize;
+			pictureBox1.SizeMode = PictureBoxSizeMode.Zoom;
 			pictureBox1.Image = img;
 
-			// Drag hareketleri için eventler
+			_imageZoom = 1.0f;
+			ApplyPictureZoom();
+
 			pictureBox1.MouseDown += PictureBox1_MouseDown;
 			pictureBox1.MouseMove += PictureBox1_MouseMove;
 			pictureBox1.MouseUp += PictureBox1_MouseUp;
@@ -82,7 +84,7 @@ namespace HelloClipboard
 				if (e.Delta > 0) _imageZoom += 0.1f;
 				else if (_imageZoom > 0.1f) _imageZoom -= 0.1f;
 
-				ApplyPictureZoom();
+				ApplyPictureZoom(); 
 			}
 		}
 
@@ -90,8 +92,13 @@ namespace HelloClipboard
 		{
 			if (pictureBox1.Image == null) return;
 
-			pictureBox1.Width = (int)(pictureBox1.Image.Width * _imageZoom);
-			pictureBox1.Height = (int)(pictureBox1.Image.Height * _imageZoom);
+			// Resmin orijinal boyutlarını al
+			int originalWidth = pictureBox1.Image.Width;
+			int originalHeight = pictureBox1.Image.Height;
+
+			// Zoom faktörüne göre yeni boyutları hesapla
+			pictureBox1.Width = (int)(originalWidth * _imageZoom);
+			pictureBox1.Height = (int)(originalHeight * _imageZoom);
 		}
 
 		// ------------------ IMAGE DRAG/PAN ------------------
