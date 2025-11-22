@@ -133,8 +133,26 @@ namespace HelloClipboard
 
 			if (SettingsLoader.Current.PreventClipboardDuplication)
 			{
-				if (_clipboardCache.Count > 0 && _clipboardCache[0].Text == content)
+				var existingItems = _clipboardCache.Where(cacheItem => cacheItem.Text == content).ToList();
+
+				if (existingItems.Any())
+				{
+					var itemToKeep = existingItems.Last();
+					foreach (var i in existingItems)
+					{
+						_clipboardCache.Remove(i);
+						if (!_form.IsDisposed)
+						{
+							_form.RemoveItem(i);
+						}
+					}
+					_clipboardCache.Add(itemToKeep);
+					if (!_form.IsDisposed)
+					{
+						_form.MessageWriteLine(itemToKeep);
+					}
 					return;
+				}
 			}
 
 			string cleanedContent = content;
@@ -151,7 +169,7 @@ namespace HelloClipboard
 
 			if (!_form.IsDisposed)
 			{
-				_form.MessageWriteLine(cleanedContent.Trim());
+				_form.MessageWriteLine(item);
 			}
 
 			if (_clipboardCache.Count > SettingsLoader.Current.MaxHistoryCount)

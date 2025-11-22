@@ -10,16 +10,16 @@ namespace HelloClipboard
 		public ClipDetail(MainForm mainForm,ClipboardItem item)
 		{
 			InitializeComponent();
+			_mainForm = mainForm;
 			richTextBox1.WordWrap = false;
 			richTextBox1.ScrollBars = RichTextBoxScrollBars.Both;
 			richTextBox1.Text = item.Text;
-			this.Text = $"Row {item.Index} - {Constants.AppName}";
+			this.Text = $"Row {item.Index + 1} Detail - {Constants.AppName}";
 		}
 
 		private void button1_copy_Click(object sender, EventArgs e)
 		{
 			_mainForm?.copyToolStripMenuItem_Click(sender, e);
-			this.Close(); 
 		}
 	}
 }

@@ -17,13 +17,9 @@ Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\H
 Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\HelloClipboard.exe.config"; DestDir: "{app}"; Flags: ignoreversion
 Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\HelloClipboard.exe.manifest"; DestDir: "{app}"; Flags: ignoreversion
 
-; GoodbyeDPI executable
-Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\goodbyedpi.exe"; DestDir: "{app}"; Flags: ignoreversion restartreplace
-
 ; DLLs and support files
 Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\*.dll"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\*.pdb"; DestDir: "{app}"; Flags: ignoreversion
-Source: "C:\Users\yearn\source\repos\HelloClipboard\HelloClipboard\bin\Release\*.sys"; DestDir: "{app}"; Flags: ignoreversion restartreplace
 
 [Icons]
 Name: "{group}\HelloClipboard"; Filename: "{app}\HelloClipboard.exe"

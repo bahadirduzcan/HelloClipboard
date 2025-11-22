@@ -25,11 +25,12 @@ namespace HelloClipboard
 
 			_viewModel.LoadSettings();
 
+			MessagesListBox.DisplayMember = "Title";
 		}
 
-		public void MessageWriteLine(string msg)
+		public void MessageWriteLine(ClipboardItem item)
 		{
-			MessagesListBox.Items.Add(msg);
+			MessagesListBox.Items.Add(item);
 			int lastIndex = MessagesListBox.Items.Count - 1;
 			if (lastIndex >= 0)
 			{
@@ -57,7 +58,7 @@ namespace HelloClipboard
 			var cbCache = _trayApplicationContext.GetClipboardCache();
 			foreach (var item in cbCache)
 			{
-				MessageWriteLine(item.Text);
+				MessageWriteLine(item);
 			}
 		}
 
@@ -67,6 +68,14 @@ namespace HelloClipboard
 			var cache = _trayApplicationContext.GetClipboardCache();
 			foreach (var item in cache)
 				MessagesListBox.Items.Add(item.Text);
+		}
+
+		public void RemoveItem(ClipboardItem item)
+		{
+			if (MessagesListBox.Items.Contains(item))
+			{
+				MessagesListBox.Items.Remove(item);
+			}
 		}
 
 		public void UpdateCheckUpdateNowBtnText(string newString)
@@ -231,22 +240,19 @@ namespace HelloClipboard
 			if (MessagesListBox.SelectedIndices.Count == 0)
 				return;
 
-
 			CloseDetailFormIfAvaible();
 
-			var cache = _trayApplicationContext.GetClipboardCache();
+			List<string> selectedTexts = new List<string>();
 
-			List<string> selectedFromCache = new List<string>();
-
-			foreach (int index in MessagesListBox.SelectedIndices)
+			foreach (var item in MessagesListBox.SelectedItems)
 			{
-				if (index >= 0 && index < cache.Count)
-					selectedFromCache.Add(cache[index].Text); // artık Text kullanıyoruz
+				if (item is ClipboardItem clipboardItem)
+					selectedTexts.Add(clipboardItem.Text);
 			}
 
 			_trayApplicationContext.SuppressClipboardEvents(true);
 
-			Clipboard.SetText(string.Join(Environment.NewLine, selectedFromCache));
+			Clipboard.SetText(string.Join(Environment.NewLine, selectedTexts));
 
 			Task.Delay(100).ContinueWith(_ =>
 			{
@@ -254,12 +260,9 @@ namespace HelloClipboard
 			});
 		}
 
-
-
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
 		{
 			var pos = MessagesListBox.PointToClient(Cursor.Position);
-
 			int index = MessagesListBox.IndexFromPoint(pos);
 
 			if (index < 0)
@@ -267,15 +270,19 @@ namespace HelloClipboard
 				e.Cancel = true;
 				return;
 			}
-				MessagesListBox.SelectedIndex = index;
+			MessagesListBox.SelectedIndex = index;
 
-			var cache = _trayApplicationContext.GetClipboardCache();
-			if (index >= cache.Count) return;
+			ClipboardItem selectedItem = MessagesListBox.SelectedItem as ClipboardItem;
 
+			if (selectedItem == null)
+			{
+				e.Cancel = true;
+				return;
+			}
 
 			CloseDetailFormIfAvaible();
 
-			_openDetailForm = new ClipDetail(this,cache[index]);
+			_openDetailForm = new ClipDetail(this, selectedItem);
 			PositionDetailForm(_openDetailForm);
 			_openDetailForm.Show(this);
 		}
@@ -394,13 +401,13 @@ namespace HelloClipboard
 
 			MessagesListBox.SelectedIndex = index;
 
-			var cache = _trayApplicationContext.GetClipboardCache();
-			if (index >= cache.Count) return;
+			ClipboardItem selectedItem = MessagesListBox.SelectedItem as ClipboardItem;
 
+			if (selectedItem == null) return; 
 
 			CloseDetailFormIfAvaible();
 
-			_openDetailForm = new ClipDetail(this,cache[index]);
+			_openDetailForm = new ClipDetail(this, selectedItem);
 			PositionDetailForm(_openDetailForm);
 			_openDetailForm.Show(this);
 		}
@@ -472,7 +479,7 @@ namespace HelloClipboard
 			{
 				foreach (var item in _trayApplicationContext.GetClipboardCache())
 				{
-					MessagesListBox.Items.Add(item.Title);
+					MessagesListBox.Items.Add(item); // item.Title yerine item'ın kendisi
 				}
 			}
 			else
@@ -482,7 +489,7 @@ namespace HelloClipboard
 				{
 					if (item.Text != null && item.Text.ToLowerInvariant().Contains(lowerSearch))
 					{
-						MessagesListBox.Items.Add(item.Title);
+						MessagesListBox.Items.Add(item); // item.Title yerine item'ın kendisi
 					}
 				}
 			}
