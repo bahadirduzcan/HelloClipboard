@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
@@ -115,7 +116,8 @@ namespace HelloClipboard
 				}
 				else if (Clipboard.ContainsImage())
 				{
-					AddToCache("[IMAGE]");
+					var image = Clipboard.GetImage();
+					AddToCache($"[IMAGE {_clipboardCache.Count}]", image);
 				}
 			}
 			catch (Exception ex)
@@ -126,12 +128,12 @@ namespace HelloClipboard
 			}
 		}
 
-		private void AddToCache(string content)
+		private void AddToCache(string content, Image image = null)
 		{
-			if (string.IsNullOrWhiteSpace(content))
+			if (string.IsNullOrWhiteSpace(content) && image == null)
 				return;
 
-			if (SettingsLoader.Current.PreventClipboardDuplication)
+			if (SettingsLoader.Current.PreventClipboardDuplication && image == null)
 			{
 				var existingItems = _clipboardCache.Where(cacheItem => cacheItem.Text == content).ToList();
 
@@ -164,7 +166,8 @@ namespace HelloClipboard
 				cleanedContent = Regex.Replace(replacedContent, @"\s+", " ");
 			}
 
-			var item = new ClipboardItem(_clipboardCache.Count, content, cleanedContent);
+			ClipboardItemType type = image != null ? ClipboardItemType.Image : ClipboardItemType.Text;
+			var item = new ClipboardItem(_clipboardCache.Count,type, content, cleanedContent, image);
 			_clipboardCache.Add(item);
 
 			if (!_form.IsDisposed)
