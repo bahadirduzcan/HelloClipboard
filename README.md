@@ -23,7 +23,8 @@ HelloClipboard runs in the background, tracks your clipboard history, lets you s
 
 ## 🖼️ Screenshots
 
-*(Insert your screenshots here.)*
+<img width="851" height="728" alt="image" src="https://github.com/user-attachments/assets/e17aa396-9896-4c19-a226-0181ed602b47" />
+
 
 ## ⚙️ Installation
 
