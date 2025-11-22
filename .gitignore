@@ -416,3 +416,6 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+*.csv
+/Output/HelloClipboard_Installer.exe
+pfx_password.txt
