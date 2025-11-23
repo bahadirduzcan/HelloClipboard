@@ -83,30 +83,6 @@ namespace HelloClipboard
 			checkUpdateToolStripMenuItem.Text = newString;
 		}
 
-		private async void checkUpdateToolStripMenuItem_Click(object sender, EventArgs e)
-		{
-			checkUpdateToolStripMenuItem.Enabled = false;
-			string currentVersion = Application.ProductVersion;
-			var update = await UpdateService.CheckForUpdateAsync(currentVersion, false);
-			if (update != null)
-			{
-				var result = MessageBox.Show(
-					"A new version is available. Do you want to download it now? New update features: " + update.Notes,
-					"Update Available v" + update.Version,
-					MessageBoxButtons.YesNo,
-					MessageBoxIcon.Information);
-				if (result == DialogResult.Yes)
-				{
-					await UpdateService.DownloadAndRunUpdateAsync();
-				}
-			}
-			else
-			{
-				MessageBox.Show("No updates available.", "Up to date", MessageBoxButtons.OK, MessageBoxIcon.Information);
-			}
-			checkUpdateToolStripMenuItem.Enabled = true;
-		}
-
 		private void aboutToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 
@@ -508,6 +484,30 @@ namespace HelloClipboard
 		private void saveToFileToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ShowUnderDevelopmentDialog("Save to File");
+		}
+
+		private async void checkUpdateToolStripMenuItem_Click_1(object sender, EventArgs e)
+		{
+			checkUpdateToolStripMenuItem.Enabled = false;
+			string currentVersion = Application.ProductVersion;
+			var update = await UpdateService.CheckForUpdateAsync(currentVersion, false);
+			if (update != null)
+			{
+				var result = MessageBox.Show(
+					"A new version is available. Do you want to download it now? New update features: " + update.Notes,
+					"Update Available v" + update.Version,
+					MessageBoxButtons.YesNo,
+					MessageBoxIcon.Information);
+				if (result == DialogResult.Yes)
+				{
+					await UpdateService.DownloadAndRunUpdateAsync();
+				}
+			}
+			else
+			{
+				MessageBox.Show("No updates available.", "Up to date", MessageBoxButtons.OK, MessageBoxIcon.Information);
+			}
+			checkUpdateToolStripMenuItem.Enabled = true;
 		}
 	}
 }
