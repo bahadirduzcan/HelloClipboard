@@ -134,7 +134,7 @@ namespace HelloClipboard
 			if (string.IsNullOrWhiteSpace(content) && image == null)
 				return;
 
-			if (image != null)
+			if (SettingsLoader.Current.PreventClipboardDuplication && image != null)
 			{
 				if (_clipboardCache.Any())
 				{

@@ -46,22 +46,28 @@
 			this.textBox1_search = new System.Windows.Forms.TextBox();
 			this.pictureBox1 = new System.Windows.Forms.PictureBox();
 			this.pictureBox2 = new System.Windows.Forms.PictureBox();
+			this.panel1 = new System.Windows.Forms.Panel();
+			this.panel2 = new System.Windows.Forms.Panel();
+			this.panel3 = new System.Windows.Forms.Panel();
 			this.contextMenuStrip1.SuspendLayout();
 			this.menuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).BeginInit();
+			this.panel1.SuspendLayout();
+			this.panel2.SuspendLayout();
+			this.panel3.SuspendLayout();
 			this.SuspendLayout();
 			// 
 			// MessagesListBox
 			// 
 			this.MessagesListBox.ContextMenuStrip = this.contextMenuStrip1;
-			this.MessagesListBox.Dock = System.Windows.Forms.DockStyle.Bottom;
+			this.MessagesListBox.Dock = System.Windows.Forms.DockStyle.Fill;
 			this.MessagesListBox.FormattingEnabled = true;
 			this.MessagesListBox.ItemHeight = 21;
-			this.MessagesListBox.Location = new System.Drawing.Point(0, 68);
+			this.MessagesListBox.Location = new System.Drawing.Point(0, 0);
 			this.MessagesListBox.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.MessagesListBox.Name = "MessagesListBox";
-			this.MessagesListBox.Size = new System.Drawing.Size(464, 613);
+			this.MessagesListBox.Size = new System.Drawing.Size(464, 609);
 			this.MessagesListBox.TabIndex = 2;
 			this.MessagesListBox.MouseClick += new System.Windows.Forms.MouseEventHandler(this.MessagesListBox_MouseClick);
 			// 
@@ -143,7 +149,7 @@
 			// checkUpdateToolStripMenuItem
 			// 
 			this.checkUpdateToolStripMenuItem.Name = "checkUpdateToolStripMenuItem";
-			this.checkUpdateToolStripMenuItem.Size = new System.Drawing.Size(180, 26);
+			this.checkUpdateToolStripMenuItem.Size = new System.Drawing.Size(176, 26);
 			this.checkUpdateToolStripMenuItem.Text = "Check Update";
 			this.checkUpdateToolStripMenuItem.Click += new System.EventHandler(this.checkUpdateToolStripMenuItem_Click);
 			// 
@@ -156,16 +162,18 @@
 			// 
 			// textBox1_search
 			// 
-			this.textBox1_search.Location = new System.Drawing.Point(46, 32);
+			this.textBox1_search.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
+            | System.Windows.Forms.AnchorStyles.Right)));
+			this.textBox1_search.Location = new System.Drawing.Point(45, 4);
 			this.textBox1_search.Name = "textBox1_search";
-			this.textBox1_search.Size = new System.Drawing.Size(373, 29);
+			this.textBox1_search.Size = new System.Drawing.Size(374, 29);
 			this.textBox1_search.TabIndex = 1;
 			this.textBox1_search.TextChanged += new System.EventHandler(this.textBox1_search_TextChanged);
 			// 
 			// pictureBox1
 			// 
 			this.pictureBox1.Image = global::HelloClipboard.Properties.Resources.icons8_search_512px;
-			this.pictureBox1.Location = new System.Drawing.Point(13, 33);
+			this.pictureBox1.Location = new System.Drawing.Point(12, 4);
 			this.pictureBox1.Name = "pictureBox1";
 			this.pictureBox1.Size = new System.Drawing.Size(27, 28);
 			this.pictureBox1.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -174,8 +182,9 @@
 			// 
 			// pictureBox2
 			// 
+			this.pictureBox2.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
 			this.pictureBox2.Image = global::HelloClipboard.Properties.Resources.icons8_broom_480px;
-			this.pictureBox2.Location = new System.Drawing.Point(425, 32);
+			this.pictureBox2.Location = new System.Drawing.Point(425, 4);
 			this.pictureBox2.Name = "pictureBox2";
 			this.pictureBox2.Size = new System.Drawing.Size(27, 28);
 			this.pictureBox2.SizeMode = System.Windows.Forms.PictureBoxSizeMode.Zoom;
@@ -183,15 +192,42 @@
 			this.pictureBox2.TabStop = false;
 			this.pictureBox2.Click += new System.EventHandler(this.pictureBox2_Click);
 			// 
+			// panel1
+			// 
+			this.panel1.Controls.Add(this.panel3);
+			this.panel1.Controls.Add(this.panel2);
+			this.panel1.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panel1.Location = new System.Drawing.Point(0, 29);
+			this.panel1.Name = "panel1";
+			this.panel1.Size = new System.Drawing.Size(464, 652);
+			this.panel1.TabIndex = 7;
+			// 
+			// panel2
+			// 
+			this.panel2.Controls.Add(this.textBox1_search);
+			this.panel2.Controls.Add(this.pictureBox1);
+			this.panel2.Controls.Add(this.pictureBox2);
+			this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
+			this.panel2.Location = new System.Drawing.Point(0, 0);
+			this.panel2.Name = "panel2";
+			this.panel2.Size = new System.Drawing.Size(464, 43);
+			this.panel2.TabIndex = 7;
+			// 
+			// panel3
+			// 
+			this.panel3.Controls.Add(this.MessagesListBox);
+			this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
+			this.panel3.Location = new System.Drawing.Point(0, 43);
+			this.panel3.Name = "panel3";
+			this.panel3.Size = new System.Drawing.Size(464, 609);
+			this.panel3.TabIndex = 8;
+			// 
 			// MainForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(464, 681);
-			this.Controls.Add(this.pictureBox2);
-			this.Controls.Add(this.pictureBox1);
-			this.Controls.Add(this.textBox1_search);
-			this.Controls.Add(this.MessagesListBox);
+			this.Controls.Add(this.panel1);
 			this.Controls.Add(this.menuStrip1);
 			this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
@@ -211,6 +247,10 @@
 			this.menuStrip1.PerformLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox2)).EndInit();
+			this.panel1.ResumeLayout(false);
+			this.panel2.ResumeLayout(false);
+			this.panel2.PerformLayout();
+			this.panel3.ResumeLayout(false);
 			this.ResumeLayout(false);
 			this.PerformLayout();
 
@@ -233,6 +273,9 @@
 		private System.Windows.Forms.TextBox textBox1_search;
 		private System.Windows.Forms.PictureBox pictureBox1;
 		private System.Windows.Forms.PictureBox pictureBox2;
+		private System.Windows.Forms.Panel panel1;
+		private System.Windows.Forms.Panel panel3;
+		private System.Windows.Forms.Panel panel2;
 	}
 }
 

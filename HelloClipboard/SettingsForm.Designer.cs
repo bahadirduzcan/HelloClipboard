@@ -37,6 +37,7 @@
 			this.checkBox5_enableBetterHistoryVisualization = new System.Windows.Forms.CheckBox();
 			this.label2 = new System.Windows.Forms.Label();
 			this.button2_Defaults = new System.Windows.Forms.Button();
+			this.label3 = new System.Windows.Forms.Label();
 			this.SuspendLayout();
 			// 
 			// checkBox1_startWithWindows
@@ -77,7 +78,7 @@
 			// 
 			// textBox1_maxHistoryCount
 			// 
-			this.textBox1_maxHistoryCount.Location = new System.Drawing.Point(160, 308);
+			this.textBox1_maxHistoryCount.Location = new System.Drawing.Point(352, 10);
 			this.textBox1_maxHistoryCount.Name = "textBox1_maxHistoryCount";
 			this.textBox1_maxHistoryCount.Size = new System.Drawing.Size(100, 29);
 			this.textBox1_maxHistoryCount.TabIndex = 4;
@@ -89,7 +90,7 @@
 			// label1
 			// 
 			this.label1.AutoSize = true;
-			this.label1.Location = new System.Drawing.Point(12, 311);
+			this.label1.Location = new System.Drawing.Point(204, 13);
 			this.label1.Name = "label1";
 			this.label1.Size = new System.Drawing.Size(142, 21);
 			this.label1.TabIndex = 5;
@@ -98,7 +99,7 @@
 			// checkBox4_preventClipboardDuplication
 			// 
 			this.checkBox4_preventClipboardDuplication.AutoSize = true;
-			this.checkBox4_preventClipboardDuplication.Location = new System.Drawing.Point(12, 169);
+			this.checkBox4_preventClipboardDuplication.Location = new System.Drawing.Point(12, 117);
 			this.checkBox4_preventClipboardDuplication.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.checkBox4_preventClipboardDuplication.Name = "checkBox4_preventClipboardDuplication";
 			this.checkBox4_preventClipboardDuplication.Size = new System.Drawing.Size(237, 25);
@@ -110,7 +111,7 @@
 			// checkBox5_enableBetterHistoryVisualization
 			// 
 			this.checkBox5_enableBetterHistoryVisualization.AutoSize = true;
-			this.checkBox5_enableBetterHistoryVisualization.Location = new System.Drawing.Point(13, 204);
+			this.checkBox5_enableBetterHistoryVisualization.Location = new System.Drawing.Point(13, 178);
 			this.checkBox5_enableBetterHistoryVisualization.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.checkBox5_enableBetterHistoryVisualization.Name = "checkBox5_enableBetterHistoryVisualization";
 			this.checkBox5_enableBetterHistoryVisualization.Size = new System.Drawing.Size(266, 25);
@@ -123,7 +124,7 @@
 			// 
 			this.label2.AutoSize = true;
 			this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.Location = new System.Drawing.Point(12, 234);
+			this.label2.Location = new System.Drawing.Point(13, 208);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(407, 13);
 			this.label2.TabIndex = 8;
@@ -141,11 +142,23 @@
 			this.button2_Defaults.UseVisualStyleBackColor = true;
 			this.button2_Defaults.Click += new System.EventHandler(this.button2_Defaults_Click);
 			// 
+			// label3
+			// 
+			this.label3.AutoSize = true;
+			this.label3.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+			this.label3.Location = new System.Drawing.Point(12, 147);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(389, 26);
+			this.label3.TabIndex = 10;
+			this.label3.Text = "For optimal performance, the system performs a full check on all texts and \r\ncomp" +
+    "ares images only with the latest one.";
+			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(464, 441);
+			this.Controls.Add(this.label3);
 			this.Controls.Add(this.button2_Defaults);
 			this.Controls.Add(this.label2);
 			this.Controls.Add(this.checkBox5_enableBetterHistoryVisualization);
@@ -182,5 +195,6 @@
 		private System.Windows.Forms.CheckBox checkBox5_enableBetterHistoryVisualization;
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button button2_Defaults;
+		private System.Windows.Forms.Label label3;
 	}
 }
