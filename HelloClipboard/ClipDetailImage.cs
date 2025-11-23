@@ -72,34 +72,53 @@ namespace HelloClipboard
 		// ---------------- ZOOM ----------------
 		private void Panel1_MouseWheel(object sender, MouseEventArgs e)
 		{
-			if ((ModifierKeys & Keys.Control) != Keys.Control)
-				return;
-
 			if (_image == null) return;
 
-			float oldZoom = _imageZoom;
-
-			if (e.Delta > 0)
-				_imageZoom += 0.1f;
-			else
-				_imageZoom = Math.Max(_minZoom, _imageZoom - 0.1f);
-
-			if (oldZoom > _minZoom || _imageZoom > _minZoom)
+			// CTRL ile zoom
+			if ((ModifierKeys & Keys.Control) == Keys.Control)
 			{
-				// Mouse pozisyonunu koruyacak şekilde offseti ayarla
-				float scale = _imageZoom / oldZoom;
-				_imageOffset.X = (int)(e.X - (e.X - _imageOffset.X) * scale);
-				_imageOffset.Y = (int)(e.Y - (e.Y - _imageOffset.Y) * scale);
+				float oldZoom = _imageZoom;
+
+				if (e.Delta > 0)
+					_imageZoom += 0.2f;
+				else
+					_imageZoom = Math.Max(_minZoom, _imageZoom - 0.2f);
+
+				if (oldZoom > _minZoom || _imageZoom > _minZoom)
+				{
+					float scale = _imageZoom / oldZoom;
+					_imageOffset.X = (int)(e.X - (e.X - _imageOffset.X) * scale);
+					_imageOffset.Y = (int)(e.Y - (e.Y - _imageOffset.Y) * scale);
+				}
+				else
+				{
+					CenterImage();
+				}
+
+				ClampImageOffset();
+				panel1.Invalidate();
+				return;
+			}
+
+			// SHIFT ile yatay pan
+			if ((ModifierKeys & Keys.Shift) == Keys.Shift)
+			{
+				int scrollAmount = panel1.ClientSize.Width / 10;
+				scrollAmount = e.Delta > 0 ? scrollAmount : -scrollAmount;
+				_imageOffset.X += scrollAmount;
 			}
 			else
 			{
-				// Max zoom out, resmi merkezle
-				CenterImage();
+				// Dikey pan
+				int scrollAmount = panel1.ClientSize.Height / 10;
+				scrollAmount = e.Delta > 0 ? scrollAmount : -scrollAmount;
+				_imageOffset.Y += scrollAmount;
 			}
 
 			ClampImageOffset();
 			panel1.Invalidate();
 		}
+
 
 
 		// ---------------- PAN ----------------
