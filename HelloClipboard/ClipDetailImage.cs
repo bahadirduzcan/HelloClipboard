@@ -23,9 +23,7 @@ namespace HelloClipboard
 			_mainForm = mainForm;
 			this.Text = $"Row {item.Index + 1} Detail - {Constants.AppName}";
 
-			// Paint olayını bağla
 			panel1.Paint += panel1_Paint;
-
 			panel1.MouseWheel += Panel1_MouseWheel;
 			panel1.MouseDown += Panel1_MouseDown;
 			panel1.MouseMove += Panel1_MouseMove;
@@ -85,13 +83,23 @@ namespace HelloClipboard
 			else
 				_imageZoom = Math.Max(_minZoom, _imageZoom - 0.1f);
 
-			// Mouse pozisyonunu koruyacak şekilde offseti ayarla
-			float scale = _imageZoom / oldZoom;
-			_imageOffset.X = (int)(e.X - (e.X - _imageOffset.X) * scale);
-			_imageOffset.Y = (int)(e.Y - (e.Y - _imageOffset.Y) * scale);
+			if (oldZoom > _minZoom || _imageZoom > _minZoom)
+			{
+				// Mouse pozisyonunu koruyacak şekilde offseti ayarla
+				float scale = _imageZoom / oldZoom;
+				_imageOffset.X = (int)(e.X - (e.X - _imageOffset.X) * scale);
+				_imageOffset.Y = (int)(e.Y - (e.Y - _imageOffset.Y) * scale);
+			}
+			else
+			{
+				// Max zoom out, resmi merkezle
+				CenterImage();
+			}
 
+			ClampImageOffset();
 			panel1.Invalidate();
 		}
+
 
 		// ---------------- PAN ----------------
 		private void Panel1_MouseDown(object sender, MouseEventArgs e)
@@ -109,6 +117,7 @@ namespace HelloClipboard
 			_imageOffset.Y += e.Y - _dragStart.Y;
 			_dragStart = e.Location;
 
+			ClampImageOffset();
 			panel1.Invalidate();
 		}
 
@@ -135,6 +144,7 @@ namespace HelloClipboard
 			{
 				_imageZoom = _minZoom;
 				CenterImage();
+				ClampImageOffset();
 			}
 
 			panel1.Invalidate();
@@ -153,6 +163,35 @@ namespace HelloClipboard
 			e.Graphics.Clear(panel1.BackColor);
 			e.Graphics.DrawImage(_image, _imageOffset.X, _imageOffset.Y, drawWidth, drawHeight);
 		}
+
+		private void ClampImageOffset()
+		{
+			if (_image == null) return;
+
+			int drawWidth = (int)(_image.Width * _imageZoom);
+			int drawHeight = (int)(_image.Height * _imageZoom);
+
+			// Eğer resim panelden daha küçükse merkezle
+			if (drawWidth < panel1.ClientSize.Width)
+				_imageOffset.X = (panel1.ClientSize.Width - drawWidth) / 2;
+			else
+			{
+				int maxX = 0;
+				int minX = panel1.ClientSize.Width - drawWidth;
+				_imageOffset.X = Math.Min(maxX, Math.Max(minX, _imageOffset.X));
+			}
+
+			if (drawHeight < panel1.ClientSize.Height)
+				_imageOffset.Y = (panel1.ClientSize.Height - drawHeight) / 2;
+			else
+			{
+				int maxY = 0;
+				int minY = panel1.ClientSize.Height - drawHeight;
+				_imageOffset.Y = Math.Min(maxY, Math.Max(minY, _imageOffset.Y));
+			}
+		}
+
+
 
 		// ---------------- CENTER IMAGE ----------------
 		private void CenterImage()
