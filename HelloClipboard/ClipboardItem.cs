@@ -18,7 +18,8 @@ namespace HelloClipboard
 		public Image ImageContent { get; set; }
 		public DateTime Timestamp { get; set; }
 		public int Index { get; set; }
-		public ClipboardItem(int index,ClipboardItemType type ,string text, string title, Image image = null)
+		public string ContentHash { get; set; }
+		public ClipboardItem(int index,ClipboardItemType type ,string text, string title, Image image = null, string contentHash = null)
 		{
 			Index = index;
 			ItemType = type;
@@ -26,6 +27,7 @@ namespace HelloClipboard
 			Timestamp = DateTime.Now;
 			Title = title;
 			ImageContent = image;
+			ContentHash = contentHash;
 		}
 	}
 }

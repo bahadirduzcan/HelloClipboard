@@ -22,6 +22,7 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.CheckedChanged -= checkBox4_preventClipboardDuplication_CheckedChanged;
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged -= checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
+			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
 
 			checkBox2_hideToSystemTray.Checked = SettingsLoader.Current.HideToTray;
 			checkBox3_checkUpdates.Checked = SettingsLoader.Current.CheckUpdates;
@@ -29,6 +30,7 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.Checked = SettingsLoader.Current.PreventClipboardDuplication;
 			checkBox5_enableBetterHistoryVisualization.Checked = SettingsLoader.Current.EnableBetterHistoryVisualization;
 			textBox1_maxHistoryCount.Text = SettingsLoader.Current.MaxHistoryCount.ToString();
+			checkBox1_invertClipboardHistoryListing.Checked = SettingsLoader.Current.InvertClipboardHistoryListing;
 
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
 			checkBox3_checkUpdates.CheckedChanged += checkBox3_checkUpdates_CheckedChanged;
@@ -36,63 +38,9 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.CheckedChanged += checkBox4_preventClipboardDuplication_CheckedChanged;
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged += checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
+			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
 		}
 
-		private void checkBox2_hideToSystemTray_CheckedChanged(object sender, EventArgs e)
-		{
-			SettingsLoader.Current.HideToTray = checkBox2_hideToSystemTray.Checked;
-			SettingsLoader.Save();
-		}
-
-		private void checkBox3_checkUpdates_CheckedChanged(object sender, EventArgs e)
-		{
-			SettingsLoader.Current.CheckUpdates = checkBox3_checkUpdates.Checked;
-			SettingsLoader.Save();
-		}
-		private async void checkBox1_startWithWindows_CheckedChanged(object sender, EventArgs e)
-		{
-			if (!await PrivilegesHelper.EnsureAdministrator())
-				return;
-			try
-			{
-				string appName = Constants.AppName;
-				string exePath = $"\"{Application.ExecutablePath}\"";
-				using (RegistryKey key = Registry.CurrentUser.OpenSubKey(
-						   @"Software\Microsoft\Windows\CurrentVersion\Run", writable: true))
-				{
-					if (checkBox1_startWithWindows.Checked)
-					{
-						key.SetValue(appName, exePath);
-					}
-					else
-					{
-						if (key.GetValue(appName) != null)
-							key.DeleteValue(appName);
-					}
-				}
-				SettingsLoader.Current.StartWithWindows = checkBox1_startWithWindows.Checked;
-				SettingsLoader.Save();
-			}
-			catch (Exception ex)
-			{
-				MessageBox.Show(
-				ex.Message,
-					"Failed to update application startup (Registry)",
-					MessageBoxButtons.OK);
-			}
-		}
-
-		private void checkBox4_preventClipboardDuplication_CheckedChanged(object sender, EventArgs e)
-		{
-			SettingsLoader.Current.PreventClipboardDuplication = checkBox4_preventClipboardDuplication.Checked;
-			SettingsLoader.Save();
-		}
-
-		private void checkBox5_enableBetterHistoryVisualization_CheckedChanged(object sender, EventArgs e)
-		{
-			SettingsLoader.Current.EnableBetterHistoryVisualization = checkBox5_enableBetterHistoryVisualization.Checked;
-			SettingsLoader.Save();
-		}
 
 		private void textBox1_maxHistoryCount_TextChanged(object sender, EventArgs e)
 		{
@@ -156,6 +104,7 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.CheckedChanged -= checkBox4_preventClipboardDuplication_CheckedChanged;
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged -= checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
+			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
 
 			checkBox1_startWithWindows.Checked = def.StartWithWindows;
 			checkBox2_hideToSystemTray.Checked = def.HideToTray;
@@ -163,6 +112,7 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.Checked = def.PreventClipboardDuplication;
 			checkBox5_enableBetterHistoryVisualization.Checked = def.EnableBetterHistoryVisualization;
 			textBox1_maxHistoryCount.Text = def.MaxHistoryCount.ToString();
+			checkBox1_invertClipboardHistoryListing.Checked = def.InvertClipboardHistoryListing;
 
 			checkBox1_startWithWindows.CheckedChanged += checkBox1_startWithWindows_CheckedChanged;
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
@@ -170,6 +120,7 @@ namespace HelloClipboard
 			checkBox4_preventClipboardDuplication.CheckedChanged += checkBox4_preventClipboardDuplication_CheckedChanged;
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged += checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
+			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
 
 			SettingsLoader.Current = def;
 			SettingsLoader.Save();
@@ -198,5 +149,65 @@ namespace HelloClipboard
 
 		}
 
+
+		private async void checkBox1_startWithWindows_CheckedChanged(object sender, EventArgs e)
+		{
+			if (!await PrivilegesHelper.EnsureAdministrator())
+				return;
+			try
+			{
+				string appName = Constants.AppName;
+				string exePath = $"\"{Application.ExecutablePath}\"";
+				using (RegistryKey key = Registry.CurrentUser.OpenSubKey(
+						   @"Software\Microsoft\Windows\CurrentVersion\Run", writable: true))
+				{
+					if (checkBox1_startWithWindows.Checked)
+					{
+						key.SetValue(appName, exePath);
+					}
+					else
+					{
+						if (key.GetValue(appName) != null)
+							key.DeleteValue(appName);
+					}
+				}
+				SettingsLoader.Current.StartWithWindows = checkBox1_startWithWindows.Checked;
+				SettingsLoader.Save();
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show(
+				ex.Message,
+					"Failed to update application startup (Registry)",
+					MessageBoxButtons.OK);
+			}
+		}
+		private void checkBox2_hideToSystemTray_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.HideToTray = checkBox2_hideToSystemTray.Checked;
+			SettingsLoader.Save();
+		}
+
+		private void checkBox3_checkUpdates_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.CheckUpdates = checkBox3_checkUpdates.Checked;
+			SettingsLoader.Save();
+		}
+		private void checkBox4_preventClipboardDuplication_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.PreventClipboardDuplication = checkBox4_preventClipboardDuplication.Checked;
+			SettingsLoader.Save();
+		}
+
+		private void checkBox5_enableBetterHistoryVisualization_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.EnableBetterHistoryVisualization = checkBox5_enableBetterHistoryVisualization.Checked;
+			SettingsLoader.Save();
+		}
+		private void checkBox1_invertClipboardHistoryListing_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.InvertClipboardHistoryListing = checkBox1_invertClipboardHistoryListing.Checked;
+			SettingsLoader.Save();
+		}
 	}
 }

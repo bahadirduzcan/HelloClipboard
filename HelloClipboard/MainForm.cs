@@ -12,6 +12,7 @@ namespace HelloClipboard
 		private readonly MainFormViewModel _viewModel;
 		private bool _isLoaded = false;
 		private Form _openDetailForm;
+		private FormWindowState _previousWindowState = FormWindowState.Normal;
 
 		public MainForm(TrayApplicationContext trayApplicationContext)
 		{
@@ -190,7 +191,7 @@ namespace HelloClipboard
 
 		private void _SaveFormPosition()
 		{
-			if (this.WindowState != FormWindowState.Minimized && _isLoaded)
+			if (this.WindowState == FormWindowState.Normal && _isLoaded)
 			{
 				var cfg = TempConfigLoader.Current;
 				cfg.MainFormWidth = this.Width;
@@ -216,9 +217,20 @@ namespace HelloClipboard
 			_SaveFormPosition();
 		}
 
-		private void MainForm_Resize(object sender, EventArgs e)
+		private async void MainForm_Resize(object sender, EventArgs e)
 		{
 			_SaveFormPosition();
+			if (_isLoaded && this.WindowState == FormWindowState.Normal &&
+		_previousWindowState == FormWindowState.Maximized)
+			{
+				await System.Threading.Tasks.Task.Delay(10);
+				var cfg = TempConfigLoader.Current;
+				if (cfg.MainFormX >= 0 && cfg.MainFormY >= 0)
+				{
+					this.Location = new Point(cfg.MainFormX, cfg.MainFormY);
+				}
+			}
+			_previousWindowState = this.WindowState;
 		}
 
 		private void MainForm_Move(object sender, EventArgs e)
@@ -252,6 +264,10 @@ namespace HelloClipboard
 			if (snappedX || snappedY)
 			{
 				this.Location = new Point(newX, newY);
+			}
+			if (_openDetailForm != null && !_openDetailForm.IsDisposed)
+			{
+				PositionDetailForm(_openDetailForm);
 			}
 		}
 

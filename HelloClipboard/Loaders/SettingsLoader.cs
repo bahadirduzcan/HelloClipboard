@@ -12,6 +12,7 @@ namespace HelloClipboard
 		public bool StartWithWindows { get; set; } = false;
 		public bool PreventClipboardDuplication { get; set; } = false;
 		public bool EnableBetterHistoryVisualization { get; set; } = true;
+		public bool InvertClipboardHistoryListing { get; set; } = false;
 		public int MaxHistoryCount { get; set; } = 50;
 	}
 

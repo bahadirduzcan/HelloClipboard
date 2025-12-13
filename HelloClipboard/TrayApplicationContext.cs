@@ -15,6 +15,7 @@ namespace HelloClipboard
 		private MainForm _form;
 		private bool _updateChecksStarted;
 		private readonly List<ClipboardItem> _clipboardCache = new List<ClipboardItem>();
+		private readonly HashSet<string> _clipboardHashPool = new HashSet<string>();
 		private bool _trayMinimizedNotifyShown;
 		public bool ApplicationExiting;
 		public static TrayApplicationContext Instance { get; private set; }
@@ -74,9 +75,10 @@ namespace HelloClipboard
 			cfg.MainFormX = -1;
 			cfg.MainFormY = -1;
 			TempConfigLoader.Save();
+			_form.ResetFormPositionAndSize();
 			HideMainWindow();
 			ShowMainWindow();
-			_form.ResetFormPositionAndSize();
+			ScreenHelper.CenterFormManually(_form);
 		}
 
 		#region CLIPBOARD HANDLING
@@ -124,68 +126,98 @@ namespace HelloClipboard
 			if (string.IsNullOrWhiteSpace(textContent) && imageContent == null)
 				return;
 
-			if (SettingsLoader.Current.PreventClipboardDuplication && type == ClipboardItemType.Image)
-			{
-				if (_clipboardCache.Any())
-				{
-					var lastItem = _clipboardCache.Last();
+			string calculatedHash = null;
+			ClipboardItem existingItem = null;
 
-					if (lastItem.ImageContent != null)
-					{
-						if (ImageAnalizer.AreImagesEqual(imageContent, lastItem.ImageContent))
-						{
-							return;
-						}
-					}
+			// 1. HASH HESAPLAMA (Tüm ilgili tipler için)
+			if (SettingsLoader.Current.PreventClipboardDuplication)
+			{
+				if (type == ClipboardItemType.Text || type == ClipboardItemType.File)
+				{
+					calculatedHash = HashHelper.CalculateMd5Hash(textContent);
+				}
+				else if (type == ClipboardItemType.Image && imageContent != null)
+				{
+					// Görsel Hash Mantığı
+					calculatedHash = HashHelper.HashImageBytes(imageContent);
 				}
 			}
 
-			if (SettingsLoader.Current.PreventClipboardDuplication && type == ClipboardItemType.Text)
+			// 2. DUPLİKASYON KONTROLÜ (O(1))
+			if (calculatedHash != null && _clipboardHashPool.Contains(calculatedHash))
 			{
-				var existingItems = _clipboardCache.Where(cacheItem => cacheItem.Content == textContent).ToList();
+				// Duplikasyon bulundu. Hash'i kullanarak listede arama (O(N))
+				// Not: Bu, ContentHash'in ClipboardItem'a gömülü olmasını gerektirir.
+				existingItem = _clipboardCache.FirstOrDefault(i => i.ContentHash == calculatedHash);
 
-				if (existingItems.Any())
+				if (existingItem != null)
 				{
-					var itemToKeep = existingItems.Last();
-					foreach (var i in existingItems)
-					{
-						_clipboardCache.Remove(i);
-						if (!_form.IsDisposed)
-						{
-							_form.MessageRemoveItem(i);
-						}
-					}
-					_clipboardCache.Add(itemToKeep);
-					if (!_form.IsDisposed)
-					{
-						_form.MessageAdd(itemToKeep);
-					}
-					return;
+					// Kaldır ve en sona ekle (başa taşı)
+					_clipboardCache.Remove(existingItem);
+					if (!_form.IsDisposed) { _form.MessageRemoveItem(existingItem); }
+
+					_clipboardCache.Add(existingItem);
+					if (!_form.IsDisposed) { _form.MessageAdd(existingItem); }
 				}
+				return;
 			}
 
-			string newTitle = textContent;
+			// 3. --- Öğe Oluşturma ve Ekleme (Tüm Tipler Ortak) ---
+
+			// Başlık Oluşturma
+
+			string newTitle = "";
+
 			if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.Text)
 			{
-				string replacedContent = textContent.Replace('\r', ' ')
-												.Replace('\n', ' ')
-												.Replace('\t', ' ');
-				newTitle = Regex.Replace(replacedContent, @"\s+", " ");
+				string replacedNewlines = textContent.Replace('\r', ' ')
+										 .Replace('\n', ' ')
+										 .Replace('\t', ' ');
+				string cleanedWhitespace = Regex.Replace(replacedNewlines, @"\s+", " ");
+				 newTitle = cleanedWhitespace.Trim();
+				if (newTitle.Length > 1024)
+				{
+					newTitle = newTitle.Substring(0, 1024) + "...";
+				}
+			}
+			else if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.Image)
+			{
+				newTitle = textContent;
 			}
 			else if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.File)
 			{
 				newTitle = $"{System.IO.Path.GetFileName(textContent)} -> {textContent}";
 			}
 
-			var item = new ClipboardItem(_clipboardCache.Count, type, textContent, newTitle, imageContent);
+			// Item Oluşturma
+			var item = new ClipboardItem(_clipboardCache.Count, type, textContent, newTitle, imageContent, calculatedHash);
 
+			// Önbelleğe Ekle
 			_clipboardCache.Add(item);
+
+			// Hash Havuzuna Ekle
+			if (item.ContentHash != null)
+			{
+				_clipboardHashPool.Add(item.ContentHash);
+			}
+
+			// Form'a Ekle
 			if (!_form.IsDisposed)
 			{
 				_form.MessageAdd(item);
 			}
+
+			// Limit Kontrolü
 			if (_clipboardCache.Count > SettingsLoader.Current.MaxHistoryCount)
 			{
+				var oldestItem = _clipboardCache[0];
+
+				// Gömülü hash'i kullanarak O(1) hızında havuçtan temizle
+				if (oldestItem.ContentHash != null)
+				{
+					_clipboardHashPool.Remove(oldestItem.ContentHash);
+				}
+
 				_form.MessageRemoveAt(0);
 				_clipboardCache.RemoveAt(0);
 			}
