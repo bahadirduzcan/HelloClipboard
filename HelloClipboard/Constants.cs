@@ -11,6 +11,8 @@ namespace HelloClipboard
 
 		public static readonly string UserDataDir = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), AppName);
 
+		public static readonly string HistoryDirectory = Path.Combine(UserDataDir, "ClipboardHistory");
+
 		public static readonly TimeSpan ApplicationUpdateInterval = TimeSpan.FromHours(6);
 		
 		public const int MaxDetailFormTitleLength = 15;

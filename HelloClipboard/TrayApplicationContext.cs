@@ -20,15 +20,32 @@ namespace HelloClipboard
 		public bool ApplicationExiting;
 		public static TrayApplicationContext Instance { get; private set; }
 		private bool _suppressClipboardEvents = false;
+		private HistoryHelper historyHelper { get; set; }
 
 		public TrayApplicationContext()
 		{
 			Instance = this;
+
 			_form = new MainForm(this);
 			if (!_form.IsHandleCreated)
 			{
 				var handle = _form.Handle;
 			}
+
+			historyHelper = new HistoryHelper();
+			if (SettingsLoader.Current.EnableClipboardHistory)
+			{
+				var loadedItems = historyHelper.LoadHistoryFromFiles();
+				foreach (var item in loadedItems)
+				{
+					_clipboardCache.Add(item);
+					if (item.ContentHash != null)
+					{
+						_clipboardHashPool.Add(item.ContentHash);
+					}
+				}
+			}
+
 			_trayIcon = new NotifyIcon()
 			{
 				Icon = Properties.Resources.favicon,
@@ -56,10 +73,7 @@ namespace HelloClipboard
 			{
 				StartAutoUpdateCheck();
 			}
-			if (SettingsLoader.Current.CheckUpdates)
-			{
-				StartAutoUpdateCheck();
-			}
+
 			TempConfigLoader.Current.AdminPriviligesRequested = false;
 			TempConfigLoader.Save();
 			ClipboardNotification.ClipboardUpdate += OnClipboardUpdate;
@@ -192,6 +206,13 @@ namespace HelloClipboard
 			// Item Oluşturma
 			var item = new ClipboardItem(_clipboardCache.Count, type, textContent, newTitle, imageContent, calculatedHash);
 
+			// Eğer geçmiş aktifse ve hash varsa, dosyaya kaydet
+			if (SettingsLoader.Current.EnableClipboardHistory && item.ContentHash != null)
+			{
+				// *** GÜNCELLEME: HistoryHelper kullan ***
+				historyHelper.SaveItemToHistoryFile(item);
+			}
+
 			// Önbelleğe Ekle
 			_clipboardCache.Add(item);
 
@@ -216,6 +237,12 @@ namespace HelloClipboard
 				if (oldestItem.ContentHash != null)
 				{
 					_clipboardHashPool.Remove(oldestItem.ContentHash);
+
+					// *** EKLEME: Dosyayı da sil ***
+					if (SettingsLoader.Current.EnableClipboardHistory)
+					{
+						historyHelper.DeleteItemFromFile(oldestItem.ContentHash);
+					}
 				}
 
 				_form.MessageRemoveAt(0);

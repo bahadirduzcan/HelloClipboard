@@ -27,6 +27,8 @@ namespace HelloClipboard
 			_viewModel.LoadSettings();
 
 			MessagesListBox.DisplayMember = "Title";
+
+			var enableClipboardHistory = SettingsLoader.Current.EnableClipboardHistory;
 		}
 
 		public void MessageAdd(ClipboardItem item)
@@ -90,13 +92,13 @@ namespace HelloClipboard
 			}
 		}
 
-		//public void RefreshCacheView()
-		//{
-		//	MessagesListBox.Items.Clear();
-		//	var cache = _trayApplicationContext.GetClipboardCache();
-		//	foreach (var item in cache)
-		//		MessagesListBox.Items.Add(item.Content);
-		//}
+		public void RefreshCacheView()
+		{
+			MessagesListBox.Items.Clear();
+			var cache = _trayApplicationContext.GetClipboardCache();
+			foreach (var item in cache)
+				MessagesListBox.Items.Add(item.Content);
+		}
 
 
 		public void UpdateCheckUpdateNowBtnText(string newString)
@@ -127,7 +129,6 @@ namespace HelloClipboard
 				dlg.ShowDialog(this);
 			}
 		}
-
 
 		protected override void OnFormClosing(FormClosingEventArgs e)
 		{

@@ -38,6 +38,7 @@
 			this.label2 = new System.Windows.Forms.Label();
 			this.button2_Defaults = new System.Windows.Forms.Button();
 			this.checkBox1_invertClipboardHistoryListing = new System.Windows.Forms.CheckBox();
+			this.checkBox1_clipboardHistory = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// checkBox1_startWithWindows
@@ -99,24 +100,24 @@
 			// checkBox4_preventClipboardDuplication
 			// 
 			this.checkBox4_preventClipboardDuplication.AutoSize = true;
-			this.checkBox4_preventClipboardDuplication.Location = new System.Drawing.Point(12, 117);
+			this.checkBox4_preventClipboardDuplication.Location = new System.Drawing.Point(13, 117);
 			this.checkBox4_preventClipboardDuplication.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.checkBox4_preventClipboardDuplication.Name = "checkBox4_preventClipboardDuplication";
-			this.checkBox4_preventClipboardDuplication.Size = new System.Drawing.Size(237, 25);
+			this.checkBox4_preventClipboardDuplication.Size = new System.Drawing.Size(165, 25);
 			this.checkBox4_preventClipboardDuplication.TabIndex = 6;
-			this.checkBox4_preventClipboardDuplication.Text = "Prevent Clipboard Duplication";
+			this.checkBox4_preventClipboardDuplication.Text = "Prevent Duplication";
 			this.checkBox4_preventClipboardDuplication.UseVisualStyleBackColor = true;
 			this.checkBox4_preventClipboardDuplication.CheckedChanged += new System.EventHandler(this.checkBox4_preventClipboardDuplication_CheckedChanged);
 			// 
 			// checkBox5_enableBetterHistoryVisualization
 			// 
 			this.checkBox5_enableBetterHistoryVisualization.AutoSize = true;
-			this.checkBox5_enableBetterHistoryVisualization.Location = new System.Drawing.Point(12, 187);
+			this.checkBox5_enableBetterHistoryVisualization.Location = new System.Drawing.Point(13, 222);
 			this.checkBox5_enableBetterHistoryVisualization.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.checkBox5_enableBetterHistoryVisualization.Name = "checkBox5_enableBetterHistoryVisualization";
-			this.checkBox5_enableBetterHistoryVisualization.Size = new System.Drawing.Size(266, 25);
+			this.checkBox5_enableBetterHistoryVisualization.Size = new System.Drawing.Size(162, 25);
 			this.checkBox5_enableBetterHistoryVisualization.TabIndex = 7;
-			this.checkBox5_enableBetterHistoryVisualization.Text = "Enable Better History Visualization";
+			this.checkBox5_enableBetterHistoryVisualization.Text = "Better Visualization";
 			this.checkBox5_enableBetterHistoryVisualization.UseVisualStyleBackColor = true;
 			this.checkBox5_enableBetterHistoryVisualization.CheckedChanged += new System.EventHandler(this.checkBox5_enableBetterHistoryVisualization_CheckedChanged);
 			// 
@@ -124,7 +125,7 @@
 			// 
 			this.label2.AutoSize = true;
 			this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.Location = new System.Drawing.Point(10, 217);
+			this.label2.Location = new System.Drawing.Point(12, 252);
 			this.label2.Name = "label2";
 			this.label2.Size = new System.Drawing.Size(407, 13);
 			this.label2.TabIndex = 8;
@@ -145,20 +146,33 @@
 			// checkBox1_invertClipboardHistoryListing
 			// 
 			this.checkBox1_invertClipboardHistoryListing.AutoSize = true;
-			this.checkBox1_invertClipboardHistoryListing.Location = new System.Drawing.Point(12, 152);
+			this.checkBox1_invertClipboardHistoryListing.Location = new System.Drawing.Point(13, 152);
 			this.checkBox1_invertClipboardHistoryListing.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.checkBox1_invertClipboardHistoryListing.Name = "checkBox1_invertClipboardHistoryListing";
-			this.checkBox1_invertClipboardHistoryListing.Size = new System.Drawing.Size(245, 25);
+			this.checkBox1_invertClipboardHistoryListing.Size = new System.Drawing.Size(141, 25);
 			this.checkBox1_invertClipboardHistoryListing.TabIndex = 11;
-			this.checkBox1_invertClipboardHistoryListing.Text = "Invert Clipboard History Listing";
+			this.checkBox1_invertClipboardHistoryListing.Text = "Invert Clipboard";
 			this.checkBox1_invertClipboardHistoryListing.UseVisualStyleBackColor = true;
 			this.checkBox1_invertClipboardHistoryListing.CheckedChanged += new System.EventHandler(this.checkBox1_invertClipboardHistoryListing_CheckedChanged);
+			// 
+			// checkBox1_clipboardHistory
+			// 
+			this.checkBox1_clipboardHistory.AutoSize = true;
+			this.checkBox1_clipboardHistory.Location = new System.Drawing.Point(13, 187);
+			this.checkBox1_clipboardHistory.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+			this.checkBox1_clipboardHistory.Name = "checkBox1_clipboardHistory";
+			this.checkBox1_clipboardHistory.Size = new System.Drawing.Size(129, 25);
+			this.checkBox1_clipboardHistory.TabIndex = 12;
+			this.checkBox1_clipboardHistory.Text = "Enable History";
+			this.checkBox1_clipboardHistory.UseVisualStyleBackColor = true;
+			this.checkBox1_clipboardHistory.CheckedChanged += new System.EventHandler(this.checkBox1_clipboardHistory_CheckedChanged);
 			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(464, 441);
+			this.Controls.Add(this.checkBox1_clipboardHistory);
 			this.Controls.Add(this.checkBox1_invertClipboardHistoryListing);
 			this.Controls.Add(this.button2_Defaults);
 			this.Controls.Add(this.label2);
@@ -197,5 +211,6 @@
 		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button button2_Defaults;
 		private System.Windows.Forms.CheckBox checkBox1_invertClipboardHistoryListing;
+		private System.Windows.Forms.CheckBox checkBox1_clipboardHistory;
 	}
 }

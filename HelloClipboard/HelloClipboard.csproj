@@ -168,8 +168,10 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="TrayApplicationContext.cs" />
     <Compile Include="Utils\CharHelper.cs" />
+    <Compile Include="Utils\FileExtensionHelper.cs" />
     <Compile Include="Utils\FileOpener.cs" />
     <Compile Include="Utils\HashHelper.cs" />
+    <Compile Include="Utils\HistoryHelper.cs" />
     <Compile Include="Utils\ImageAnalyzer.cs" />
     <Compile Include="Utils\PriviligesHelper.cs" />
     <Compile Include="Utils\ScreenHelper.cs" />

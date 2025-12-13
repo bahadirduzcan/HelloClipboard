@@ -23,6 +23,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged -= checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
+			checkBox1_clipboardHistory.TextChanged -= checkBox1_clipboardHistory_CheckedChanged;
 
 			checkBox2_hideToSystemTray.Checked = SettingsLoader.Current.HideToTray;
 			checkBox3_checkUpdates.Checked = SettingsLoader.Current.CheckUpdates;
@@ -31,6 +32,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.Checked = SettingsLoader.Current.EnableBetterHistoryVisualization;
 			textBox1_maxHistoryCount.Text = SettingsLoader.Current.MaxHistoryCount.ToString();
 			checkBox1_invertClipboardHistoryListing.Checked = SettingsLoader.Current.InvertClipboardHistoryListing;
+			checkBox1_clipboardHistory.Checked = SettingsLoader.Current.EnableClipboardHistory;
 
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
 			checkBox3_checkUpdates.CheckedChanged += checkBox3_checkUpdates_CheckedChanged;
@@ -39,6 +41,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged += checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
+			checkBox1_clipboardHistory.TextChanged += checkBox1_clipboardHistory_CheckedChanged;
 		}
 
 
@@ -105,6 +108,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged -= checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
+			checkBox1_clipboardHistory.TextChanged -= checkBox1_clipboardHistory_CheckedChanged;
 
 			checkBox1_startWithWindows.Checked = def.StartWithWindows;
 			checkBox2_hideToSystemTray.Checked = def.HideToTray;
@@ -113,6 +117,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.Checked = def.EnableBetterHistoryVisualization;
 			textBox1_maxHistoryCount.Text = def.MaxHistoryCount.ToString();
 			checkBox1_invertClipboardHistoryListing.Checked = def.InvertClipboardHistoryListing;
+			checkBox1_clipboardHistory.Checked = def.EnableClipboardHistory;
 
 			checkBox1_startWithWindows.CheckedChanged += checkBox1_startWithWindows_CheckedChanged;
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
@@ -121,6 +126,7 @@ namespace HelloClipboard
 			checkBox5_enableBetterHistoryVisualization.CheckedChanged += checkBox5_enableBetterHistoryVisualization_CheckedChanged;
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
+			checkBox1_clipboardHistory.TextChanged += checkBox1_clipboardHistory_CheckedChanged;
 
 			SettingsLoader.Current = def;
 			SettingsLoader.Save();
@@ -207,6 +213,12 @@ namespace HelloClipboard
 		private void checkBox1_invertClipboardHistoryListing_CheckedChanged(object sender, EventArgs e)
 		{
 			SettingsLoader.Current.InvertClipboardHistoryListing = checkBox1_invertClipboardHistoryListing.Checked;
+			SettingsLoader.Save();
+		}
+
+		private void checkBox1_clipboardHistory_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.EnableClipboardHistory = checkBox1_clipboardHistory.Checked;
 			SettingsLoader.Save();
 		}
 	}
