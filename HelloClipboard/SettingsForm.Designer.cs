@@ -34,8 +34,6 @@
 			this.textBox1_maxHistoryCount = new System.Windows.Forms.TextBox();
 			this.label1 = new System.Windows.Forms.Label();
 			this.checkBox4_preventClipboardDuplication = new System.Windows.Forms.CheckBox();
-			this.checkBox5_enableBetterHistoryVisualization = new System.Windows.Forms.CheckBox();
-			this.label2 = new System.Windows.Forms.Label();
 			this.button2_Defaults = new System.Windows.Forms.Button();
 			this.checkBox1_invertClipboardHistoryListing = new System.Windows.Forms.CheckBox();
 			this.checkBox1_clipboardHistory = new System.Windows.Forms.CheckBox();
@@ -109,28 +107,6 @@
 			this.checkBox4_preventClipboardDuplication.UseVisualStyleBackColor = true;
 			this.checkBox4_preventClipboardDuplication.CheckedChanged += new System.EventHandler(this.checkBox4_preventClipboardDuplication_CheckedChanged);
 			// 
-			// checkBox5_enableBetterHistoryVisualization
-			// 
-			this.checkBox5_enableBetterHistoryVisualization.AutoSize = true;
-			this.checkBox5_enableBetterHistoryVisualization.Location = new System.Drawing.Point(13, 222);
-			this.checkBox5_enableBetterHistoryVisualization.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
-			this.checkBox5_enableBetterHistoryVisualization.Name = "checkBox5_enableBetterHistoryVisualization";
-			this.checkBox5_enableBetterHistoryVisualization.Size = new System.Drawing.Size(162, 25);
-			this.checkBox5_enableBetterHistoryVisualization.TabIndex = 7;
-			this.checkBox5_enableBetterHistoryVisualization.Text = "Better Visualization";
-			this.checkBox5_enableBetterHistoryVisualization.UseVisualStyleBackColor = true;
-			this.checkBox5_enableBetterHistoryVisualization.CheckedChanged += new System.EventHandler(this.checkBox5_enableBetterHistoryVisualization_CheckedChanged);
-			// 
-			// label2
-			// 
-			this.label2.AutoSize = true;
-			this.label2.Font = new System.Drawing.Font("Segoe UI", 8.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-			this.label2.Location = new System.Drawing.Point(12, 252);
-			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(407, 13);
-			this.label2.TabIndex = 8;
-			this.label2.Text = "When data is added to the history, spaces and new lines are visually removed.";
-			// 
 			// button2_Defaults
 			// 
 			this.button2_Defaults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
@@ -175,8 +151,6 @@
 			this.Controls.Add(this.checkBox1_clipboardHistory);
 			this.Controls.Add(this.checkBox1_invertClipboardHistoryListing);
 			this.Controls.Add(this.button2_Defaults);
-			this.Controls.Add(this.label2);
-			this.Controls.Add(this.checkBox5_enableBetterHistoryVisualization);
 			this.Controls.Add(this.checkBox4_preventClipboardDuplication);
 			this.Controls.Add(this.label1);
 			this.Controls.Add(this.textBox1_maxHistoryCount);
@@ -207,8 +181,6 @@
 		private System.Windows.Forms.TextBox textBox1_maxHistoryCount;
 		private System.Windows.Forms.Label label1;
 		private System.Windows.Forms.CheckBox checkBox4_preventClipboardDuplication;
-		private System.Windows.Forms.CheckBox checkBox5_enableBetterHistoryVisualization;
-		private System.Windows.Forms.Label label2;
 		private System.Windows.Forms.Button button2_Defaults;
 		private System.Windows.Forms.CheckBox checkBox1_invertClipboardHistoryListing;
 		private System.Windows.Forms.CheckBox checkBox1_clipboardHistory;

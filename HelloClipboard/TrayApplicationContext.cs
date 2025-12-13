@@ -141,7 +141,8 @@ namespace HelloClipboard
 				else if (Clipboard.ContainsImage())
 				{
 					var image = Clipboard.GetImage();
-					AddToCache(ClipboardItemType.Image, $"[IMAGE {_clipboardCache.Count}]", image);
+					var imageCount = _clipboardCache.Count(i => i.ItemType == ClipboardItemType.Image);
+					AddToCache(ClipboardItemType.Image, $"[IMAGE {imageCount + 1}]", image);
 				}
 			}
 			catch (Exception ex)
@@ -189,7 +190,7 @@ namespace HelloClipboard
 
 			string newTitle = "";
 
-			if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.Text)
+			if ( type == ClipboardItemType.Text)
 			{
 				string replacedNewlines = textContent.Replace('\r', ' ')
 										 .Replace('\n', ' ')
@@ -201,11 +202,11 @@ namespace HelloClipboard
 					newTitle = newTitle.Substring(0, 1024) + "...";
 				}
 			}
-			else if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.Image)
+			else if ( type == ClipboardItemType.Image)
 			{
 				newTitle = textContent;
 			}
-			else if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.File)
+			else if ( type == ClipboardItemType.File)
 			{
 				newTitle = $"{System.IO.Path.GetFileName(textContent)} -> {textContent}";
 			}

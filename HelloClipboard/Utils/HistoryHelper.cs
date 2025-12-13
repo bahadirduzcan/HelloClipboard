@@ -10,7 +10,7 @@ namespace HelloClipboard
 {
 	public class HistoryHelper
 	{
-		private readonly int _maxHistoryCount; 
+		private readonly int _maxHistoryCount;
 
 		public HistoryHelper()
 		{
@@ -121,7 +121,7 @@ namespace HelloClipboard
 					{
 						content = File.ReadAllText(fileInfo.FullName);
 
-						if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.Text)
+						if (type == ClipboardItemType.Text)
 						{
 							string replacedNewlines = content.Replace('\r', ' ')
 													 .Replace('\n', ' ')
@@ -133,7 +133,7 @@ namespace HelloClipboard
 								newTitle = newTitle.Substring(0, 1024) + "...";
 							}
 						}
-						else if (SettingsLoader.Current.EnableBetterHistoryVisualization && type == ClipboardItemType.File)
+						else if (type == ClipboardItemType.File)
 						{
 							newTitle = $"{Path.GetFileName(content)} -> {content}";
 						}
@@ -144,7 +144,7 @@ namespace HelloClipboard
 						{
 							imageContent = Image.FromStream(ms);
 						}
-						newTitle = $"[IMAGE {count}]";
+						newTitle = $"[IMAGE {count + 1}]";
 					}
 
 					if (content != null || imageContent != null)
@@ -163,8 +163,8 @@ namespace HelloClipboard
 				}
 			}
 
-			if(!SettingsLoader.Current.InvertClipboardHistoryListing)
-			loadedCache.Reverse();
+			if (SettingsLoader.Current.InvertClipboardHistoryListing)
+				loadedCache.Reverse();
 
 			return loadedCache;
 		}
