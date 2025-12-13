@@ -2,6 +2,7 @@
 using System;
 using System.ComponentModel;
 using System.Drawing;
+using System.Linq;
 using System.Windows.Forms;
 
 namespace HelloClipboard
@@ -30,11 +31,19 @@ namespace HelloClipboard
 
 		public void MessageAdd(ClipboardItem item)
 		{
-			MessagesListBox.Items.Add(item);
-			int lastIndex = MessagesListBox.Items.Count - 1;
-			if (lastIndex >= 0)
+			if (SettingsLoader.Current.InvertClipboardHistoryListing)
 			{
-				MessagesListBox.TopIndex = lastIndex;
+				MessagesListBox.Items.Insert(0, item);
+				MessagesListBox.TopIndex = 0; 
+			}
+			else
+			{
+				MessagesListBox.Items.Add(item);
+				int lastIndex = MessagesListBox.Items.Count - 1;
+				if (lastIndex >= 0)
+				{
+					MessagesListBox.TopIndex = lastIndex;
+				}
 			}
 		}
 
@@ -64,9 +73,20 @@ namespace HelloClipboard
 		{
 			MessagesListBox.Items.Clear();
 			var cbCache = _trayApplicationContext.GetClipboardCache();
-			foreach (var item in cbCache)
+			if (SettingsLoader.Current.InvertClipboardHistoryListing)
 			{
-				MessageAdd(item);
+				foreach (var item in cbCache.Reverse())
+				{
+					MessageAdd(item);
+				}
+			}
+			else
+			{
+				// Normal sıra (eski kod)
+				foreach (var item in cbCache)
+				{
+					MessageAdd(item);
+				}
 			}
 		}
 
