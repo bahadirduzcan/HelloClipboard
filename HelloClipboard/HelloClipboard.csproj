@@ -222,6 +222,8 @@
     <None Include="Resources\icons8_search_512px.png" />
     <None Include="Resources\icons8_broom_480px.png" />
     <Content Include="favicon.ico" />
+    <None Include="Resources\icons8_locked_192px.png" />
+    <None Include="Resources\icons8_unlocked_192px.png" />
     <Content Include="settings.json">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>

@@ -22,7 +22,7 @@ namespace HelloClipboard
 			this.Text = Application.ProductName + " v" + Application.ProductVersion;
 
 			_trayApplicationContext = trayApplicationContext;
-			_viewModel = new MainFormViewModel(this,trayApplicationContext);
+			_viewModel = new MainFormViewModel(this, trayApplicationContext);
 
 			_viewModel.LoadSettings();
 
@@ -36,7 +36,7 @@ namespace HelloClipboard
 			if (SettingsLoader.Current.InvertClipboardHistoryListing)
 			{
 				MessagesListBox.Items.Insert(0, item);
-				MessagesListBox.TopIndex = 0; 
+				MessagesListBox.TopIndex = 0;
 			}
 			else
 			{
@@ -178,7 +178,7 @@ namespace HelloClipboard
 
 			CloseDetailFormIfAvaible();
 
-			if( selectedItem.ItemType == ClipboardItemType.Image )
+			if (selectedItem.ItemType == ClipboardItemType.Image)
 				_openDetailForm = new ClipDetailImage(this, selectedItem);
 			else
 			{
@@ -217,6 +217,13 @@ namespace HelloClipboard
 				this.StartPosition = FormStartPosition.Manual;
 				this.Location = new Point(cfg.MainFormX, cfg.MainFormY);
 			}
+
+			if (SettingsLoader.Current.AlwaysTopMost)
+			{
+				this.TopMost = true;
+			}
+			CheckAndUpdateTopMostImage();
+
 			_isLoaded = true;
 		}
 
@@ -267,7 +274,7 @@ namespace HelloClipboard
 		private void MainForm_Move(object sender, EventArgs e)
 		{
 			var screen = Screen.FromControl(this).WorkingArea;
-			int snapDistance = 20; 
+			int snapDistance = 20;
 			int newX = this.Left;
 			int newY = this.Top;
 			bool snappedX = false;
@@ -311,13 +318,12 @@ namespace HelloClipboard
 
 		private void settingsToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			using (var f = new SettingsForm())
+			using (var f = new SettingsForm(this))
 			{
 				f.StartPosition = FormStartPosition.CenterParent;
 				f.ShowDialog(this);
 			}
 		}
-
 
 		private void PositionDetailForm(Form detailForm)
 		{
@@ -401,7 +407,12 @@ namespace HelloClipboard
 
 		private void pictureBox2_Click(object sender, EventArgs e)
 		{
-			_trayApplicationContext.ClearClipboard();
+			var result = MessageBox.Show(
+				"Are you sure you want to clear the clipboard history?",
+				"Clear Clipboard",
+				MessageBoxButtons.YesNo);
+			if (result == DialogResult.Yes)
+				_trayApplicationContext.ClearClipboard();
 		}
 
 		private void saveToFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -431,6 +442,32 @@ namespace HelloClipboard
 				MessageBox.Show("No updates available.", "Up to date", MessageBoxButtons.OK, MessageBoxIcon.Information);
 			}
 			checkUpdateToolStripMenuItem.Enabled = true;
+		}
+
+		public void CheckAndUpdateTopMostImage()
+		{
+			if (this.TopMost)
+				pictureBox3_topMost.Image = Properties.Resources.icons8_locked_192px;
+			else
+				pictureBox3_topMost.Image = Properties.Resources.icons8_unlocked_192px;
+		}
+
+		private void pictureBox3_topMost_Click(object sender, EventArgs e)
+		{
+			if (!this.TopMost)
+			{
+				this.TopMost = true;
+			}
+			else
+			{
+				if (SettingsLoader.Current.AlwaysTopMost)
+				{
+					MessageBox.Show("The 'Always Top Most' setting is enabled in settings. Please disable it there to turn off top-most behavior.", "Action Not Allowed", MessageBoxButtons.OK, MessageBoxIcon.Information);
+					return;
+				}
+				this.TopMost = false;
+			}
+			CheckAndUpdateTopMostImage();
 		}
 	}
 }

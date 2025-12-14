@@ -83,6 +83,16 @@ namespace HelloClipboard.Properties {
         /// <summary>
         ///   Looks up a localized resource of type System.Drawing.Bitmap.
         /// </summary>
+        internal static System.Drawing.Bitmap icons8_locked_192px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_locked_192px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
         internal static System.Drawing.Bitmap icons8_paste_480px {
             get {
                 object obj = ResourceManager.GetObject("icons8_paste_480px", resourceCulture);
@@ -96,6 +106,16 @@ namespace HelloClipboard.Properties {
         internal static System.Drawing.Bitmap icons8_search_512px {
             get {
                 object obj = ResourceManager.GetObject("icons8_search_512px", resourceCulture);
+                return ((System.Drawing.Bitmap)(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Looks up a localized resource of type System.Drawing.Bitmap.
+        /// </summary>
+        internal static System.Drawing.Bitmap icons8_unlocked_192px {
+            get {
+                object obj = ResourceManager.GetObject("icons8_unlocked_192px", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

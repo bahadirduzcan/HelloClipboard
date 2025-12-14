@@ -7,10 +7,13 @@ namespace HelloClipboard
 	public partial class SettingsForm : Form
 	{
 		private Timer _debounceTimer;
+		private MainForm _mainForm;
 
-		public SettingsForm()
+		public SettingsForm(MainForm mainForm)
 		{
 			InitializeComponent();
+
+			_mainForm = mainForm;
 
 			_debounceTimer = new Timer();
 			_debounceTimer.Interval = 500;
@@ -23,6 +26,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
 			checkBox1_clipboardHistory.TextChanged -= checkBox1_clipboardHistory_CheckedChanged;
+			checkBox1_alwaysTopMost.TextChanged -= checkBox1_alwaysTopMost_CheckedChanged;
 
 			checkBox2_hideToSystemTray.Checked = SettingsLoader.Current.HideToTray;
 			checkBox3_checkUpdates.Checked = SettingsLoader.Current.CheckUpdates;
@@ -31,6 +35,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.Text = SettingsLoader.Current.MaxHistoryCount.ToString();
 			checkBox1_invertClipboardHistoryListing.Checked = SettingsLoader.Current.InvertClipboardHistoryListing;
 			checkBox1_clipboardHistory.Checked = SettingsLoader.Current.EnableClipboardHistory;
+			checkBox1_alwaysTopMost.Checked = SettingsLoader.Current.AlwaysTopMost;
 
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
 			checkBox3_checkUpdates.CheckedChanged += checkBox3_checkUpdates_CheckedChanged;
@@ -39,6 +44,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
 			checkBox1_clipboardHistory.TextChanged += checkBox1_clipboardHistory_CheckedChanged;
+			checkBox1_alwaysTopMost.TextChanged += checkBox1_alwaysTopMost_CheckedChanged;
 		}
 
 
@@ -105,6 +111,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.TextChanged -= textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged -= checkBox1_invertClipboardHistoryListing_CheckedChanged;
 			checkBox1_clipboardHistory.TextChanged -= checkBox1_clipboardHistory_CheckedChanged;
+			checkBox1_alwaysTopMost.TextChanged -= checkBox1_alwaysTopMost_CheckedChanged;
 
 			checkBox1_startWithWindows.Checked = def.StartWithWindows;
 			checkBox2_hideToSystemTray.Checked = def.HideToTray;
@@ -113,6 +120,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.Text = def.MaxHistoryCount.ToString();
 			checkBox1_invertClipboardHistoryListing.Checked = def.InvertClipboardHistoryListing;
 			checkBox1_clipboardHistory.Checked = def.EnableClipboardHistory;
+			checkBox1_alwaysTopMost.Checked = def.AlwaysTopMost;
 
 			checkBox1_startWithWindows.CheckedChanged += checkBox1_startWithWindows_CheckedChanged;
 			checkBox2_hideToSystemTray.CheckedChanged += checkBox2_hideToSystemTray_CheckedChanged;
@@ -121,6 +129,7 @@ namespace HelloClipboard
 			textBox1_maxHistoryCount.TextChanged += textBox1_maxHistoryCount_TextChanged;
 			checkBox1_invertClipboardHistoryListing.TextChanged += checkBox1_invertClipboardHistoryListing_CheckedChanged;
 			checkBox1_clipboardHistory.TextChanged += checkBox1_clipboardHistory_CheckedChanged;
+			checkBox1_alwaysTopMost.TextChanged += checkBox1_alwaysTopMost_CheckedChanged;
 
 			SettingsLoader.Current = def;
 			SettingsLoader.Save();
@@ -208,6 +217,14 @@ namespace HelloClipboard
 		private void checkBox1_clipboardHistory_CheckedChanged(object sender, EventArgs e)
 		{
 			SettingsLoader.Current.EnableClipboardHistory = checkBox1_clipboardHistory.Checked;
+			SettingsLoader.Save();
+		}
+
+		private void checkBox1_alwaysTopMost_CheckedChanged(object sender, EventArgs e)
+		{
+			_mainForm.TopMost = checkBox1_alwaysTopMost.Checked;
+			_mainForm.CheckAndUpdateTopMostImage();
+			SettingsLoader.Current.AlwaysTopMost = checkBox1_alwaysTopMost.Checked;
 			SettingsLoader.Save();
 		}
 	}

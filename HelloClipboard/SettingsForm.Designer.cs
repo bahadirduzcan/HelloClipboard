@@ -37,6 +37,7 @@
 			this.button2_Defaults = new System.Windows.Forms.Button();
 			this.checkBox1_invertClipboardHistoryListing = new System.Windows.Forms.CheckBox();
 			this.checkBox1_clipboardHistory = new System.Windows.Forms.CheckBox();
+			this.checkBox1_alwaysTopMost = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// checkBox1_startWithWindows
@@ -143,11 +144,24 @@
 			this.checkBox1_clipboardHistory.UseVisualStyleBackColor = true;
 			this.checkBox1_clipboardHistory.CheckedChanged += new System.EventHandler(this.checkBox1_clipboardHistory_CheckedChanged);
 			// 
+			// checkBox1_alwaysTopMost
+			// 
+			this.checkBox1_alwaysTopMost.AutoSize = true;
+			this.checkBox1_alwaysTopMost.Location = new System.Drawing.Point(12, 222);
+			this.checkBox1_alwaysTopMost.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
+			this.checkBox1_alwaysTopMost.Name = "checkBox1_alwaysTopMost";
+			this.checkBox1_alwaysTopMost.Size = new System.Drawing.Size(145, 25);
+			this.checkBox1_alwaysTopMost.TabIndex = 13;
+			this.checkBox1_alwaysTopMost.Text = "Always Top Most";
+			this.checkBox1_alwaysTopMost.UseVisualStyleBackColor = true;
+			this.checkBox1_alwaysTopMost.CheckedChanged += new System.EventHandler(this.checkBox1_alwaysTopMost_CheckedChanged);
+			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
 			this.ClientSize = new System.Drawing.Size(464, 441);
+			this.Controls.Add(this.checkBox1_alwaysTopMost);
 			this.Controls.Add(this.checkBox1_clipboardHistory);
 			this.Controls.Add(this.checkBox1_invertClipboardHistoryListing);
 			this.Controls.Add(this.button2_Defaults);
@@ -184,5 +198,6 @@
 		private System.Windows.Forms.Button button2_Defaults;
 		private System.Windows.Forms.CheckBox checkBox1_invertClipboardHistoryListing;
 		private System.Windows.Forms.CheckBox checkBox1_clipboardHistory;
+		private System.Windows.Forms.CheckBox checkBox1_alwaysTopMost;
 	}
 }
