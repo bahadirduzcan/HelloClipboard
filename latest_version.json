@@ -1,4 +1,4 @@
 {
-    "Version": "1.0.5.5",
-    "Notes": "🔥 🚀 Release v1.0.5.5 | What's New: UX enhancements with new navigation options and a streamlined installer. ✨ New Features: Advanced Clipboard Options, Auto-Hide on Unfocus, Taskbar Visibility Toggle, Single/Double Click Toggle, Improved Listing Logic. Update now to get the latest fixes and features! 🚀"
+    "Version": "1.0.6.6",
+    "Notes": "🚀 Release v1.0.6.6 Keyboard Navigation: Use Up / Down arrows in the search box to navigate history. Quick Action: Press Enter to copy the selected item and instantly minimize to tray. Process-Aware Hiding: The app now stays visible as long as any of its windows (Main, Detail, or Settings) are in focus."
 }
