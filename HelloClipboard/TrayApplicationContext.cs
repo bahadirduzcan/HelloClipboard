@@ -179,37 +179,66 @@ namespace HelloClipboard
 			_suppressClipboardEvents = value;
 		}
 
-		private void OnClipboardUpdate(object sender, EventArgs e)
+		private async void OnClipboardUpdate(object sender, EventArgs e)
 		{
 			if (_suppressClipboardEvents)
 				return;
-			try
+
+			// Panonun içeriğinin hazır olması için çok kısa bir bekleme (50-100ms)
+			// Bazı uygulamalar veriyi parçalı yazar.
+			await Task.Delay(100);
+
+			for (int retry = 0; retry < 5; retry++) // 5 kez deneme yap
 			{
-				if (Clipboard.ContainsText())
+				try
 				{
-					string text = Clipboard.GetText();
-					AddToCache(ClipboardItemType.Text, text);
-				}
-				else if (Clipboard.ContainsFileDropList())
-				{
-					var files = Clipboard.GetFileDropList();
-					foreach (var file in files)
+					if (Clipboard.ContainsText())
 					{
-						AddToCache(ClipboardItemType.File, file);
+						string text = Clipboard.GetText();
+						if (!string.IsNullOrEmpty(text))
+						{
+							AddToCache(ClipboardItemType.Text, text);
+							return; // Başarılı, döngüden çık
+						}
 					}
+					else if (Clipboard.ContainsFileDropList())
+					{
+						var files = Clipboard.GetFileDropList();
+						if (files.Count > 0)
+						{
+							foreach (var file in files)
+							{
+								AddToCache(ClipboardItemType.File, file);
+							}
+							return;
+						}
+					}
+					else if (Clipboard.ContainsImage())
+					{
+						var image = Clipboard.GetImage();
+						if (image != null)
+						{
+							var imageCount = _clipboardCache.Count(i => i.ItemType == ClipboardItemType.Image);
+							AddToCache(ClipboardItemType.Image, $"[IMAGE {imageCount + 1}]", image);
+							return;
+						}
+					}
+
+					// Eğer buraya geldiyse pano boş olabilir veya henüz hazır değildir
+					break;
 				}
-				else if (Clipboard.ContainsImage())
+				catch (System.Runtime.InteropServices.ExternalException)
 				{
-					var image = Clipboard.GetImage();
-					var imageCount = _clipboardCache.Count(i => i.ItemType == ClipboardItemType.Image);
-					AddToCache(ClipboardItemType.Image, $"[IMAGE {imageCount + 1}]", image);
+					// Pano o an kilitli demektir. 50ms bekle ve tekrar dene.
+					await Task.Delay(50);
 				}
-			}
-			catch (Exception ex)
-			{
+				catch (Exception ex)
+				{
 #if DEBUG
-				MessageBox.Show($"Clipboard update error: {ex.Message}", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+					System.Diagnostics.Debug.WriteLine($"Clipboard Error: {ex.Message}");
 #endif
+					break;
+				}
 			}
 		}
 

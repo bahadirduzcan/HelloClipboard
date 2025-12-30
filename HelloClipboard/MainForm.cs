@@ -1,8 +1,10 @@
 ﻿using HelloClipboard.Html;
 using System;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace HelloClipboard
@@ -14,6 +16,12 @@ namespace HelloClipboard
 		private bool _isLoaded = false;
 		private Form _openDetailForm;
 		private FormWindowState _previousWindowState = FormWindowState.Normal;
+
+		[DllImport("user32.dll")]
+		private static extern IntPtr GetForegroundWindow();
+
+		[DllImport("user32.dll")]
+		private static extern uint GetWindowThreadProcessId(IntPtr hWnd, out uint lpdwProcessId);
 
 		public MainForm(TrayApplicationContext trayApplicationContext)
 		{
@@ -31,6 +39,72 @@ namespace HelloClipboard
 			var enableClipboardHistory = SettingsLoader.Current.EnableClipboardHistory;
 
 			this.Deactivate += MainForm_Deactivate;
+
+			MessagesListBox.SelectedIndexChanged += MessagesListBox_SelectedIndexChanged;
+			textBox1_search.KeyDown += textBox1_search_KeyDown;
+		}
+
+		private void textBox1_search_KeyDown(object sender, KeyEventArgs e)
+		{
+			if (MessagesListBox.Items.Count == 0) return;
+
+			int currentIndex = MessagesListBox.SelectedIndex;
+
+			if (e.KeyCode == Keys.Down)
+			{
+				// Bir alt satıra geç (liste sonundaysa başa dönme veya durma tercihi sana ait)
+				if (currentIndex < MessagesListBox.Items.Count - 1)
+					MessagesListBox.SelectedIndex = currentIndex + 1;
+
+				e.Handled = true; // Windows'un bip sesini ve imleç hareketini engeller
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.Up)
+			{
+				// Bir üst satıra geç
+				if (currentIndex > 0)
+					MessagesListBox.SelectedIndex = currentIndex - 1;
+				else if (currentIndex == -1 && MessagesListBox.Items.Count > 0)
+					MessagesListBox.SelectedIndex = 0;
+
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+			else if (e.KeyCode == Keys.Enter)
+			{
+				// Enter'a basıldığında seçili öğeyi kopyala ve kapat
+				if (MessagesListBox.SelectedItem is ClipboardItem selectedItem)
+				{
+					_viewModel.CopyClicked(selectedItem);
+					_trayApplicationContext.HideMainWindow();
+				}
+				e.Handled = true;
+				e.SuppressKeyPress = true;
+			}
+		}
+
+		private void MessagesListBox_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			if (MessagesListBox.SelectedIndex >= 0)
+			{
+				// Klavye ile gezerken detay penceresini otomatik aç/güncelle
+				OpenDetailForIndex(MessagesListBox.SelectedIndex);
+
+				// Odağı tekrar arama kutusuna çek (Detay formu odağı çalmasın diye)
+				textBox1_search.Focus();
+			}
+		}
+
+		private bool IsAppFocused()
+		{
+			IntPtr foregroundWindow = GetForegroundWindow();
+			if (foregroundWindow == IntPtr.Zero) return false;
+
+			uint foregroundProcessId;
+			GetWindowThreadProcessId(foregroundWindow, out foregroundProcessId);
+
+			// Şu anki çalışan sürecin (Process) ID'si ile öndeki pencerenin ID'sini karşılaştır
+			return foregroundProcessId == (uint)Process.GetCurrentProcess().Id;
 		}
 
 		private void MainForm_Deactivate(object sender, EventArgs e)
@@ -38,12 +112,15 @@ namespace HelloClipboard
 			if (!SettingsLoader.Current.AutoHideWhenUnfocus || !_isLoaded)
 				return;
 
-			BeginInvoke(new MethodInvoker(() =>
+			// Task.Delay yerine kontrolü bir tık sonraya atmak için
+			BeginInvoke(new MethodInvoker(async () =>
 			{
-				Form activeForm = Form.ActiveForm;
+				// Windows'un odağı tam devretmesi için çok kısa bir bekleme
+				await System.Threading.Tasks.Task.Delay(100);
 
-				if (activeForm == null || (activeForm != this && !IsFormOwnedByMe(activeForm)))
+				if (!IsAppFocused())
 				{
+					// Eğer öndeki pencere bizim uygulamamıza ait değilse gizle
 					_trayApplicationContext.HideMainWindow();
 				}
 			}));
@@ -198,9 +275,11 @@ namespace HelloClipboard
 			if (selectedItem.ItemType == ClipboardItemType.Image)
 				_openDetailForm = new ClipDetailImage(this, selectedItem);
 			else
-			{
 				_openDetailForm = new ClipDetailText(this, selectedItem);
-			}
+
+			// Detay penceresi odağı kaybederse ana formu da kontrol et
+			_openDetailForm.Deactivate += MainForm_Deactivate;
+
 			PositionDetailForm(_openDetailForm);
 			_openDetailForm.Show(this);
 		}
