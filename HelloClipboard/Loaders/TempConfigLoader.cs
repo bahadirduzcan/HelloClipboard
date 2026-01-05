@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Windows.Forms;
@@ -15,6 +16,7 @@ namespace HelloClipboard
 		public int MainFormY { get; set; } = -1;
 		public int MainFormWidth { get; set; } = -1;
 		public int MainFormHeight { get; set; } = -1;
+		public List<string> PinnedHashes { get; set; } = new List<string>();
 
 	}
 

@@ -1,4 +1,4 @@
 {
-    "Version": "1.0.6.6",
-    "Notes": "🚀 Release v1.0.6.6 Keyboard Navigation: Use Up / Down arrows in the search box to navigate history. Quick Action: Press Enter to copy the selected item and instantly minimize to tray. Process-Aware Hiding: The app now stays visible as long as any of its windows (Main, Detail, or Settings) are in focus."
+    "Version": "1.0.7.0",
+    "Notes": "🚀 v1.0.7.0 Highlights: Pin items to keep them at the top and safe from auto-clean. Private Mode pauses clipboard capture for 10 minutes via tray menu. Search upgrades: regex + case-sensitive toggle with inline highlight. Detail pane is faster and no longer flickers when switching items."
 }

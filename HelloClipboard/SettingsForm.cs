@@ -8,6 +8,8 @@ namespace HelloClipboard
 	{
 		private Timer _debounceTimer;
 		private MainForm _mainForm;
+		private Keys _pendingHotkeyModifiers;
+		private Keys _pendingHotkeyKey;
 
 		public SettingsForm(MainForm mainForm)
 		{
@@ -31,6 +33,11 @@ namespace HelloClipboard
 			checkBox1_showInTaskbar.Checked = SettingsLoader.Current.ShowInTaskbar;
 			checkBox2_openWithSingleClick.Checked = SettingsLoader.Current.OpenWithSingleClick;
 			checkBox1_autoHideWhenUnfocus.Checked = SettingsLoader.Current.AutoHideWhenUnfocus;
+			checkBox_enableHotkey.Checked = SettingsLoader.Current.EnableGlobalHotkey;
+			textBox_hotkey.Text = FormatHotkey(SettingsLoader.Current.HotkeyModifiers, SettingsLoader.Current.HotkeyKey);
+			textBox_hotkey.Enabled = SettingsLoader.Current.EnableGlobalHotkey;
+			_pendingHotkeyKey = SettingsLoader.Current.HotkeyKey;
+			_pendingHotkeyModifiers = SettingsLoader.Current.HotkeyModifiers;
 			AddSettingEvents();
 
 		}
@@ -98,6 +105,8 @@ namespace HelloClipboard
 			checkBox1_showInTaskbar.CheckedChanged -= checkBox1_showInTaskbar_CheckedChanged;
 			checkBox2_openWithSingleClick.CheckedChanged -= checkBox2_openWithSingleClick_CheckedChanged;
 			checkBox1_autoHideWhenUnfocus.CheckedChanged -= checkBox1_autoHideWhenUnfocus_CheckedChanged;
+			checkBox_enableHotkey.CheckedChanged -= checkBox_enableHotkey_CheckedChanged;
+			textBox_hotkey.KeyDown -= textBox_hotkey_KeyDown;
 
 		}
 
@@ -114,6 +123,8 @@ namespace HelloClipboard
 			checkBox1_showInTaskbar.CheckedChanged += checkBox1_showInTaskbar_CheckedChanged;
 			checkBox2_openWithSingleClick.CheckedChanged += checkBox2_openWithSingleClick_CheckedChanged;
 			checkBox1_autoHideWhenUnfocus.CheckedChanged += checkBox1_autoHideWhenUnfocus_CheckedChanged;
+			checkBox_enableHotkey.CheckedChanged += checkBox_enableHotkey_CheckedChanged;
+			textBox_hotkey.KeyDown += textBox_hotkey_KeyDown;
 		}
 
 		private async void button2_Defaults_Click(object sender, EventArgs e)
@@ -135,10 +146,14 @@ namespace HelloClipboard
 			checkBox1_showInTaskbar.Checked = def.ShowInTaskbar;
 			checkBox2_openWithSingleClick.Checked = def.OpenWithSingleClick;
 			checkBox1_autoHideWhenUnfocus.Checked = def.AutoHideWhenUnfocus;
+			checkBox_enableHotkey.Checked = def.EnableGlobalHotkey;
+			textBox_hotkey.Text = FormatHotkey(def.HotkeyModifiers, def.HotkeyKey);
+			textBox_hotkey.Enabled = def.EnableGlobalHotkey;
 			AddSettingEvents();
 
 			SettingsLoader.Current = def;
 			SettingsLoader.Save();
+			TrayApplicationContext.Instance?.ReloadGlobalHotkey();
 
 			try
 			{
@@ -241,6 +256,9 @@ namespace HelloClipboard
 			SettingsLoader.Save();
 
 			_mainForm.UpdateTaskbarVisibility(checkBox1_showInTaskbar.Checked);
+
+			// Ayar değiştiğinde bu form açık kalmasın; yeni duruma göre ana pencere davranışı uygular
+			this.Close();
 		}
 
 		private void checkBox2_openWithSingleClick_CheckedChanged(object sender, EventArgs e)
@@ -254,5 +272,73 @@ namespace HelloClipboard
 			SettingsLoader.Current.AutoHideWhenUnfocus = checkBox1_autoHideWhenUnfocus.Checked;
 			SettingsLoader.Save();
 		}
+
+		private void checkBox_enableHotkey_CheckedChanged(object sender, EventArgs e)
+		{
+			SettingsLoader.Current.EnableGlobalHotkey = checkBox_enableHotkey.Checked;
+			textBox_hotkey.Enabled = checkBox_enableHotkey.Checked;
+			SettingsLoader.Save();
+			TrayApplicationContext.Instance?.ReloadGlobalHotkey();
+		}
+
+		private void textBox_hotkey_KeyDown(object sender, KeyEventArgs e)
+		{
+			e.SuppressKeyPress = true;
+			var key = e.KeyCode;
+			var mods = NormalizeModifiers(e.Modifiers);
+
+			// Sadece mod tuşuna basılmışsa bekle (uyarı verme)
+			if (IsModifierKey(key))
+				return;
+
+			if (mods == Keys.None)
+			{
+				MessageBox.Show("En az bir mod tuşu (Ctrl, Alt, Shift veya Win) kullanmalısınız.", "Geçersiz kısayol", MessageBoxButtons.OK, MessageBoxIcon.Information);
+				return;
+			}
+
+			_pendingHotkeyKey = key;
+			_pendingHotkeyModifiers = mods;
+
+			SettingsLoader.Current.HotkeyKey = _pendingHotkeyKey;
+			SettingsLoader.Current.HotkeyModifiers = _pendingHotkeyModifiers;
+			SettingsLoader.Current.EnableGlobalHotkey = true;
+
+			checkBox_enableHotkey.Checked = true;
+			textBox_hotkey.Text = FormatHotkey(_pendingHotkeyModifiers, _pendingHotkeyKey);
+			SettingsLoader.Save();
+			TrayApplicationContext.Instance?.ReloadGlobalHotkey();
+		}
+
+		private string FormatHotkey(Keys modifiers, Keys key)
+		{
+			var parts = new System.Collections.Generic.List<string>();
+			if (modifiers.HasFlag(Keys.Control)) parts.Add("Ctrl");
+			if (modifiers.HasFlag(Keys.Shift)) parts.Add("Shift");
+			if (modifiers.HasFlag(Keys.Alt)) parts.Add("Alt");
+			if (modifiers.HasFlag(Keys.LWin) || modifiers.HasFlag(Keys.RWin)) parts.Add("Win");
+
+			if (key != Keys.None)
+			{
+				parts.Add(key.ToString());
+			}
+			return string.Join(" + ", parts);
+		}
+
+		private Keys NormalizeModifiers(Keys modifiers)
+		{
+			Keys result = Keys.None;
+			if (modifiers.HasFlag(Keys.Control)) result |= Keys.Control;
+			if (modifiers.HasFlag(Keys.Shift)) result |= Keys.Shift;
+			if (modifiers.HasFlag(Keys.Alt)) result |= Keys.Alt;
+			if (modifiers.HasFlag(Keys.LWin) || modifiers.HasFlag(Keys.RWin)) result |= Keys.LWin;
+			return result;
+		}
+
+		private bool IsModifierKey(Keys key)
+		{
+			return key == Keys.ControlKey || key == Keys.ShiftKey || key == Keys.Menu || key == Keys.LWin || key == Keys.RWin;
+		}
+
 	}
 }

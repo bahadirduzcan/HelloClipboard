@@ -37,6 +37,21 @@ namespace HelloClipboard
 				SetupImageMode(item.ImageContent);
 		}
 
+		public void UpdateItem(ClipboardItem item)
+		{
+			if (item.ItemType != ClipboardItemType.Image)
+				return;
+
+			string shortTitle = item.Title.Length > Constants.MaxDetailFormTitleLength ? item.Title.Substring(0, Constants.MaxDetailFormTitleLength) + "…" : item.Title;
+			this.Text = $"{shortTitle} - {Constants.AppName}";
+
+			_imageOffset = Point.Empty;
+			_imageZoom = 1.0f;
+			_minZoom = 1.0f;
+
+			SetupImageMode(item.ImageContent);
+		}
+
 		private void CalculateInitialZoom()
 		{
 			if (_image == null) return;

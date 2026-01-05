@@ -19,7 +19,8 @@ namespace HelloClipboard
 		public DateTime Timestamp { get; set; }
 		public int Index { get; set; }
 		public string ContentHash { get; set; }
-		public ClipboardItem(int index,ClipboardItemType type ,string text, string title, Image image = null, string contentHash = null)
+		public bool IsPinned { get; set; }
+		public ClipboardItem(int index,ClipboardItemType type ,string text, string title, Image image = null, string contentHash = null, bool isPinned = false)
 		{
 			Index = index;
 			ItemType = type;
@@ -28,6 +29,7 @@ namespace HelloClipboard
 			Title = title;
 			ImageContent = image;
 			ContentHash = contentHash;
+			IsPinned = isPinned;
 		}
 	}
 }

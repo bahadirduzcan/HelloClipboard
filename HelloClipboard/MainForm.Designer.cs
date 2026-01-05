@@ -35,6 +35,7 @@
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveToFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.pinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.aboutToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -49,6 +50,8 @@
 			this.panel3 = new System.Windows.Forms.Panel();
 			this.panel2 = new System.Windows.Forms.Panel();
 			this.pictureBox3_topMost = new System.Windows.Forms.PictureBox();
+			this.checkBoxRegex = new System.Windows.Forms.CheckBox();
+			this.checkBoxCaseSensitive = new System.Windows.Forms.CheckBox();
 			this.contextMenuStrip1.SuspendLayout();
 			this.menuStrip1.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBox1)).BeginInit();
@@ -76,24 +79,32 @@
 			// 
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
-            this.saveToFileToolStripMenuItem});
+            this.saveToFileToolStripMenuItem,
+            this.pinToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(132, 48);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(133, 70);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// copyToolStripMenuItem
 			// 
 			this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-			this.copyToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
+			this.copyToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
 			this.copyToolStripMenuItem.Text = "Copy";
 			this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
 			// 
 			// saveToFileToolStripMenuItem
 			// 
 			this.saveToFileToolStripMenuItem.Name = "saveToFileToolStripMenuItem";
-			this.saveToFileToolStripMenuItem.Size = new System.Drawing.Size(131, 22);
+			this.saveToFileToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
 			this.saveToFileToolStripMenuItem.Text = "Save to file";
 			this.saveToFileToolStripMenuItem.Click += new System.EventHandler(this.saveToFileToolStripMenuItem_Click);
+			// 
+			// pinToolStripMenuItem
+			// 
+			this.pinToolStripMenuItem.Name = "pinToolStripMenuItem";
+			this.pinToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.pinToolStripMenuItem.Text = "Pin/Unpin";
+			this.pinToolStripMenuItem.Click += new System.EventHandler(this.pinToolStripMenuItem_Click);
 			// 
 			// menuStrip1
 			// 
@@ -199,13 +210,15 @@
 			// 
 			this.panel3.Controls.Add(this.MessagesListBox);
 			this.panel3.Dock = System.Windows.Forms.DockStyle.Fill;
-			this.panel3.Location = new System.Drawing.Point(0, 43);
+			this.panel3.Location = new System.Drawing.Point(0, 71);
 			this.panel3.Name = "panel3";
-			this.panel3.Size = new System.Drawing.Size(464, 609);
+			this.panel3.Size = new System.Drawing.Size(464, 581);
 			this.panel3.TabIndex = 8;
 			// 
 			// panel2
 			// 
+			this.panel2.Controls.Add(this.checkBoxCaseSensitive);
+			this.panel2.Controls.Add(this.checkBoxRegex);
 			this.panel2.Controls.Add(this.pictureBox3_topMost);
 			this.panel2.Controls.Add(this.pictureBox1);
 			this.panel2.Controls.Add(this.pictureBox2);
@@ -213,7 +226,7 @@
 			this.panel2.Dock = System.Windows.Forms.DockStyle.Top;
 			this.panel2.Location = new System.Drawing.Point(0, 0);
 			this.panel2.Name = "panel2";
-			this.panel2.Size = new System.Drawing.Size(464, 43);
+			this.panel2.Size = new System.Drawing.Size(464, 71);
 			this.panel2.TabIndex = 7;
 			// 
 			// pictureBox3_topMost
@@ -227,6 +240,30 @@
 			this.pictureBox3_topMost.TabIndex = 7;
 			this.pictureBox3_topMost.TabStop = false;
 			this.pictureBox3_topMost.Click += new System.EventHandler(this.pictureBox3_topMost_Click);
+			// 
+			// checkBoxRegex
+			// 
+			this.checkBoxRegex.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkBoxRegex.AutoSize = true;
+			this.checkBoxRegex.Location = new System.Drawing.Point(213, 43);
+			this.checkBoxRegex.Name = "checkBoxRegex";
+			this.checkBoxRegex.Size = new System.Drawing.Size(69, 25);
+			this.checkBoxRegex.TabIndex = 8;
+			this.checkBoxRegex.Text = "Regex";
+			this.checkBoxRegex.UseVisualStyleBackColor = true;
+			this.checkBoxRegex.CheckedChanged += new System.EventHandler(this.checkBoxRegex_CheckedChanged);
+			// 
+			// checkBoxCaseSensitive
+			// 
+			this.checkBoxCaseSensitive.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
+			this.checkBoxCaseSensitive.AutoSize = true;
+			this.checkBoxCaseSensitive.Location = new System.Drawing.Point(288, 43);
+			this.checkBoxCaseSensitive.Name = "checkBoxCaseSensitive";
+			this.checkBoxCaseSensitive.Size = new System.Drawing.Size(123, 25);
+			this.checkBoxCaseSensitive.TabIndex = 9;
+			this.checkBoxCaseSensitive.Text = "Case sensitive";
+			this.checkBoxCaseSensitive.UseVisualStyleBackColor = true;
+			this.checkBoxCaseSensitive.CheckedChanged += new System.EventHandler(this.checkBoxCaseSensitive_CheckedChanged);
 			// 
 			// MainForm
 			// 
@@ -276,6 +313,7 @@
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem saveToFileToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem pinToolStripMenuItem;
 		private System.Windows.Forms.TextBox textBox1_search;
 		private System.Windows.Forms.PictureBox pictureBox1;
 		private System.Windows.Forms.PictureBox pictureBox2;
@@ -283,6 +321,8 @@
 		private System.Windows.Forms.Panel panel3;
 		private System.Windows.Forms.Panel panel2;
 		private System.Windows.Forms.PictureBox pictureBox3_topMost;
+		private System.Windows.Forms.CheckBox checkBoxRegex;
+		private System.Windows.Forms.CheckBox checkBoxCaseSensitive;
 	}
 }
 

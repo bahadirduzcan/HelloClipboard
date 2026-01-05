@@ -31,7 +31,10 @@ namespace HelloClipboard
 			}
 			else
 			{
-				Clipboard.SetText(string.Join(Environment.NewLine, selectedItem.Content));
+				if (!string.IsNullOrEmpty(selectedItem.Content))
+				{
+					Clipboard.SetText(selectedItem.Content);
+				}
 			}
 
 			Task.Delay(100).ContinueWith(_ =>

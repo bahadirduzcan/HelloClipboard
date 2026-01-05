@@ -1,6 +1,8 @@
 ﻿using HelloClipboard.Html;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel;
+using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
@@ -15,7 +17,13 @@ namespace HelloClipboard
 		private readonly MainFormViewModel _viewModel;
 		private bool _isLoaded = false;
 		private Form _openDetailForm;
+		private ClipDetailText _detailTextForm;
+		private ClipDetailImage _detailImageForm;
 		private FormWindowState _previousWindowState = FormWindowState.Normal;
+		private bool _useRegexSearch = false;
+		private bool _caseSensitiveSearch = false;
+		private string _currentSearchTerm = string.Empty;
+		private Regex _currentRegex = null;
 
 		[DllImport("user32.dll")]
 		private static extern IntPtr GetForegroundWindow();
@@ -35,6 +43,8 @@ namespace HelloClipboard
 			_viewModel.LoadSettings();
 
 			MessagesListBox.DisplayMember = "Title";
+			MessagesListBox.DrawMode = DrawMode.OwnerDrawFixed;
+			MessagesListBox.DrawItem += MessagesListBox_DrawItem;
 
 			var enableClipboardHistory = SettingsLoader.Current.EnableClipboardHistory;
 
@@ -42,10 +52,23 @@ namespace HelloClipboard
 
 			MessagesListBox.SelectedIndexChanged += MessagesListBox_SelectedIndexChanged;
 			textBox1_search.KeyDown += textBox1_search_KeyDown;
+			textBox1_search.KeyPress += textBox1_search_KeyPress;
 		}
 
 		private void textBox1_search_KeyDown(object sender, KeyEventArgs e)
 		{
+			if (e.Control && e.KeyCode == Keys.Back)
+			{
+				DeletePreviousWord(textBox1_search);
+				e.SuppressKeyPress = true;
+				return;
+			}
+			if (e.Control && e.KeyCode == Keys.Delete)
+			{
+				DeleteNextWord(textBox1_search);
+				e.SuppressKeyPress = true;
+				return;
+			}
 			if (MessagesListBox.Items.Count == 0) return;
 
 			int currentIndex = MessagesListBox.SelectedIndex;
@@ -92,7 +115,52 @@ namespace HelloClipboard
 
 				// Odağı tekrar arama kutusuna çek (Detay formu odağı çalmasın diye)
 				textBox1_search.Focus();
+
+				if (MessagesListBox.SelectedItem is ClipboardItem selected)
+				{
+					pinToolStripMenuItem.Checked = selected.IsPinned;
+					pinToolStripMenuItem.Text = selected.IsPinned ? "Unpin" : "Pin";
+				}
 			}
+		}
+
+		private void DeletePreviousWord(TextBox tb)
+		{
+			int pos = tb.SelectionStart;
+			if (pos == 0) return;
+
+			string text = tb.Text;
+			int start = pos;
+
+			while (start > 0 && char.IsWhiteSpace(text[start - 1]))
+				start--;
+			while (start > 0 && !char.IsWhiteSpace(text[start - 1]))
+				start--;
+
+			int length = pos - start;
+			if (length <= 0) return;
+
+			tb.Text = text.Remove(start, length);
+			tb.SelectionStart = start;
+		}
+
+		private void DeleteNextWord(TextBox tb)
+		{
+			int pos = tb.SelectionStart;
+			string text = tb.Text;
+			if (pos >= text.Length) return;
+
+			int end = pos;
+			while (end < text.Length && char.IsWhiteSpace(text[end]))
+				end++;
+			while (end < text.Length && !char.IsWhiteSpace(text[end]))
+				end++;
+
+			int length = end - pos;
+			if (length <= 0) return;
+
+			tb.Text = text.Remove(pos, length);
+			tb.SelectionStart = pos;
 		}
 
 		private bool IsAppFocused()
@@ -139,12 +207,29 @@ namespace HelloClipboard
 		{
 			if (SettingsLoader.Current.InvertClipboardHistoryListing)
 			{
-				MessagesListBox.Items.Insert(0, item);
-				MessagesListBox.TopIndex = 0;
+				if (item.IsPinned)
+				{
+					MessagesListBox.Items.Insert(0, item);
+					MessagesListBox.TopIndex = 0;
+				}
+				else
+				{
+					int offset = MessagesListBox.Items.Cast<object>().TakeWhile(i => (i as ClipboardItem)?.IsPinned == true).Count();
+					MessagesListBox.Items.Insert(offset, item);
+					MessagesListBox.TopIndex = offset;
+				}
 			}
 			else
 			{
-				MessagesListBox.Items.Add(item);
+				if (item.IsPinned)
+				{
+					MessagesListBox.Items.Insert(0, item);
+				}
+				else
+				{
+					int offset = MessagesListBox.Items.Cast<object>().TakeWhile(i => (i as ClipboardItem)?.IsPinned == true).Count();
+					MessagesListBox.Items.Insert(offset, item);
+				}
 				int lastIndex = MessagesListBox.Items.Count - 1;
 				if (lastIndex >= 0)
 				{
@@ -162,19 +247,45 @@ namespace HelloClipboard
 
 			if (SettingsLoader.Current.InvertClipboardHistoryListing)
 			{
-				removeIndex = MessagesListBox.Items.Count - 1;
+				// Pinned kalemler liste başında, invert modda sondan sil
+				int lastIndex = MessagesListBox.Items.Count - 1;
+				while (lastIndex >= 0)
+				{
+					if ((MessagesListBox.Items[lastIndex] as ClipboardItem)?.IsPinned == true)
+					{
+						lastIndex--;
+						continue;
+					}
+					break;
+				}
+				if (lastIndex < 0)
+					return;
+				removeIndex = lastIndex;
 			}
 			else
 			{
-				removeIndex = 0;
+				// Normal listede ilk unpinned öğeyi sil
+				int idx = 0;
+				while (idx < MessagesListBox.Items.Count)
+				{
+					if ((MessagesListBox.Items[idx] as ClipboardItem)?.IsPinned == true)
+					{
+						idx++;
+						continue;
+					}
+					break;
+				}
+				if (idx >= MessagesListBox.Items.Count)
+					return;
+				removeIndex = idx;
 			}
 
 			MessagesListBox.Items.RemoveAt(removeIndex);
 
-			int lastIndex = MessagesListBox.Items.Count - 1;
-			if (lastIndex >= 0)
+			int lastIndexAfterRemoval = MessagesListBox.Items.Count - 1;
+			if (lastIndexAfterRemoval >= 0)
 			{
-				MessagesListBox.TopIndex = lastIndex;
+				MessagesListBox.TopIndex = lastIndexAfterRemoval;
 			}
 		}
 
@@ -183,6 +294,7 @@ namespace HelloClipboard
 			if (MessagesListBox.Items.Contains(item))
 			{
 				MessagesListBox.Items.Remove(item);
+				MessagesListBox.Refresh();
 			}
 		}
 
@@ -270,18 +382,56 @@ namespace HelloClipboard
 			if (!(MessagesListBox.SelectedItem is ClipboardItem selectedItem))
 				return;
 
-			CloseDetailFormIfAvaible();
+			Rectangle previousBounds = _openDetailForm != null && !_openDetailForm.IsDisposed ? _openDetailForm.Bounds : Rectangle.Empty;
 
 			if (selectedItem.ItemType == ClipboardItemType.Image)
-				_openDetailForm = new ClipDetailImage(this, selectedItem);
+			{
+				if (_detailImageForm == null || _detailImageForm.IsDisposed)
+				{
+					_detailImageForm = new ClipDetailImage(this, selectedItem);
+					_detailImageForm.Deactivate += MainForm_Deactivate;
+					_detailImageForm.Owner = this;
+				}
+				else
+				{
+					_detailImageForm.UpdateItem(selectedItem);
+				}
+
+				EnsureDetailPosition(_detailImageForm, previousBounds);
+				if (!_detailImageForm.Visible)
+					_detailImageForm.Show();
+				else
+					_detailImageForm.BringToFront();
+
+				if (_detailTextForm != null && !_detailTextForm.IsDisposed)
+					_detailTextForm.Hide();
+
+				_openDetailForm = _detailImageForm;
+			}
 			else
-				_openDetailForm = new ClipDetailText(this, selectedItem);
+			{
+				if (_detailTextForm == null || _detailTextForm.IsDisposed)
+				{
+					_detailTextForm = new ClipDetailText(this, selectedItem);
+					_detailTextForm.Deactivate += MainForm_Deactivate;
+					_detailTextForm.Owner = this;
+				}
+				else
+				{
+					_detailTextForm.UpdateItem(selectedItem);
+				}
 
-			// Detay penceresi odağı kaybederse ana formu da kontrol et
-			_openDetailForm.Deactivate += MainForm_Deactivate;
+				EnsureDetailPosition(_detailTextForm, previousBounds);
+				if (!_detailTextForm.Visible)
+					_detailTextForm.Show();
+				else
+					_detailTextForm.BringToFront();
 
-			PositionDetailForm(_openDetailForm);
-			_openDetailForm.Show(this);
+				if (_detailImageForm != null && !_detailImageForm.IsDisposed)
+					_detailImageForm.Hide();
+
+				_openDetailForm = _detailTextForm;
+			}
 		}
 
 		private void contextMenuStrip1_Opening(object sender, CancelEventArgs e)
@@ -294,6 +444,11 @@ namespace HelloClipboard
 				return;
 			}
 			OpenDetailForIndex(index);
+			if (MessagesListBox.SelectedItem is ClipboardItem selected)
+			{
+				pinToolStripMenuItem.Checked = selected.IsPinned;
+				pinToolStripMenuItem.Text = selected.IsPinned ? "Unpin" : "Pin";
+			}
 		}
 		private void MessagesListBox_MouseClick(object sender, MouseEventArgs e)
 		{
@@ -345,12 +500,11 @@ namespace HelloClipboard
 
 		public void CloseDetailFormIfAvaible()
 		{
-			if (_openDetailForm != null && !_openDetailForm.IsDisposed)
-			{
-				_openDetailForm.Close();
-				_openDetailForm = null;
-			}
-
+			if (_detailTextForm != null && !_detailTextForm.IsDisposed)
+				_detailTextForm.Hide();
+			if (_detailImageForm != null && !_detailImageForm.IsDisposed)
+				_detailImageForm.Hide();
+			_openDetailForm = null;
 		}
 		private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
 		{
@@ -461,6 +615,19 @@ namespace HelloClipboard
 			detailForm.Location = location;
 		}
 
+		private void EnsureDetailPosition(Form detailForm, Rectangle previousBounds)
+		{
+			if (!previousBounds.IsEmpty)
+			{
+				detailForm.StartPosition = FormStartPosition.Manual;
+				detailForm.Bounds = previousBounds;
+			}
+			else
+			{
+				PositionDetailForm(detailForm);
+			}
+		}
+
 		private void phoneSyncToolStripMenuItem_Click(object sender, EventArgs e)
 		{
 			ShowUnderDevelopmentDialog("Phone Sync");
@@ -478,9 +645,20 @@ namespace HelloClipboard
 
 		private void textBox1_search_TextChanged(object sender, EventArgs e)
 		{
+			_currentSearchTerm = textBox1_search.Text;
 			CloseDetailFormIfAvaible();
 			MessagesListBox.ClearSelected();
-			FilterClipboardCache(textBox1_search.Text);
+			BuildSearchRegex();
+			FilterClipboardCache(_currentSearchTerm);
+		}
+
+		private void textBox1_search_KeyPress(object sender, KeyPressEventArgs e)
+		{
+			// Ctrl ile basılan kontrol karakterlerinin kutu olarak görünmesini engelle
+			if (char.IsControl(e.KeyChar) && e.KeyChar != '\b')
+			{
+				e.Handled = true;
+			}
 		}
 
 		private void FilterClipboardCache(string searchTerm)
@@ -489,9 +667,27 @@ namespace HelloClipboard
 			MessagesListBox.Items.Clear();
 
 			var cache = _trayApplicationContext.GetClipboardCache();
-			var itemsToDisplay = string.IsNullOrWhiteSpace(searchTerm)
-				? cache
-				: cache.Where(i => i.Content != null && i.Content.ToLowerInvariant().Contains(searchTerm.ToLowerInvariant()));
+			IEnumerable<ClipboardItem> itemsToDisplay;
+
+			if (string.IsNullOrWhiteSpace(searchTerm))
+			{
+				itemsToDisplay = cache;
+			}
+			else if (_useRegexSearch && _currentRegex != null)
+			{
+				itemsToDisplay = cache.Where(i =>
+				{
+					if (i.Content == null) return false;
+					return _currentRegex.IsMatch(i.Content);
+				});
+			}
+			else
+			{
+				if (_caseSensitiveSearch)
+					itemsToDisplay = cache.Where(i => i.Content != null && i.Content.Contains(searchTerm));
+				else
+					itemsToDisplay = cache.Where(i => i.Content != null && i.Content.IndexOf(searchTerm, StringComparison.OrdinalIgnoreCase) >= 0);
+			}
 
 			foreach (var item in itemsToDisplay)
 			{
@@ -503,6 +699,22 @@ namespace HelloClipboard
 			MessagesListBox.EndUpdate();
 		}
 
+		private void BuildSearchRegex()
+		{
+			_currentRegex = null;
+			if (!_useRegexSearch || string.IsNullOrWhiteSpace(_currentSearchTerm))
+				return;
+			try
+			{
+				var options = _caseSensitiveSearch ? RegexOptions.None : RegexOptions.IgnoreCase;
+				_currentRegex = new Regex(_currentSearchTerm, options);
+			}
+			catch
+			{
+				_currentRegex = null;
+			}
+		}
+
 		private void pictureBox2_Click(object sender, EventArgs e)
 		{
 			var result = MessageBox.Show(
@@ -511,6 +723,58 @@ namespace HelloClipboard
 				MessageBoxButtons.YesNo);
 			if (result == DialogResult.Yes)
 				_trayApplicationContext.ClearClipboard();
+		}
+
+		private void checkBoxRegex_CheckedChanged(object sender, EventArgs e)
+		{
+			_useRegexSearch = checkBoxRegex.Checked;
+			BuildSearchRegex();
+			FilterClipboardCache(_currentSearchTerm);
+		}
+
+		private void checkBoxCaseSensitive_CheckedChanged(object sender, EventArgs e)
+		{
+			_caseSensitiveSearch = checkBoxCaseSensitive.Checked;
+			BuildSearchRegex();
+			FilterClipboardCache(_currentSearchTerm);
+		}
+
+		private void pinToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (MessagesListBox.SelectedItem is ClipboardItem selected)
+			{
+				selected.IsPinned = !selected.IsPinned;
+				if (selected.ContentHash != null)
+				{
+					if (selected.IsPinned)
+					{
+						if (!TempConfigLoader.Current.PinnedHashes.Contains(selected.ContentHash))
+							TempConfigLoader.Current.PinnedHashes.Add(selected.ContentHash);
+					}
+					else
+					{
+						TempConfigLoader.Current.PinnedHashes.Remove(selected.ContentHash);
+					}
+					TempConfigLoader.Save();
+				}
+
+				MessagesListBox.BeginUpdate();
+				MessagesListBox.Items.Remove(selected);
+				if (selected.IsPinned)
+				{
+					MessagesListBox.Items.Insert(0, selected);
+				}
+				else
+				{
+					int offset = MessagesListBox.Items.Cast<object>().TakeWhile(i => (i as ClipboardItem)?.IsPinned == true).Count();
+					MessagesListBox.Items.Insert(offset, selected);
+				}
+				MessagesListBox.EndUpdate();
+				MessagesListBox.Refresh();
+
+				pinToolStripMenuItem.Checked = selected.IsPinned;
+				pinToolStripMenuItem.Text = selected.IsPinned ? "Unpin" : "Pin";
+			}
 		}
 
 		private void saveToFileToolStripMenuItem_Click(object sender, EventArgs e)
@@ -566,6 +830,105 @@ namespace HelloClipboard
 				this.TopMost = false;
 			}
 			CheckAndUpdateTopMostImage();
+		}
+
+		private void MessagesListBox_DrawItem(object sender, DrawItemEventArgs e)
+		{
+			e.DrawBackground();
+			if (e.Index < 0 || e.Index >= MessagesListBox.Items.Count)
+				return;
+
+			var item = MessagesListBox.Items[e.Index] as ClipboardItem;
+			if (item == null)
+				return;
+
+			bool selected = (e.State & DrawItemState.Selected) == DrawItemState.Selected;
+			Color textColor = selected ? SystemColors.HighlightText : SystemColors.ControlText;
+			var bounds = e.Bounds;
+
+			string displayText = item.Title ?? string.Empty;
+			if (item.IsPinned)
+				displayText = "[PIN] " + displayText;
+
+			DrawTextWithHighlight(e.Graphics, displayText, e.Font, textColor, bounds, selected);
+			e.DrawFocusRectangle();
+		}
+
+		private void DrawTextWithHighlight(Graphics g, string text, Font font, Color textColor, Rectangle bounds, bool selected)
+		{
+			if (string.IsNullOrEmpty(text))
+				return;
+
+			var format = TextFormatFlags.Left | TextFormatFlags.VerticalCenter | TextFormatFlags.EndEllipsis;
+
+			if (string.IsNullOrWhiteSpace(_currentSearchTerm))
+			{
+				TextRenderer.DrawText(g, text, font, bounds, textColor, format);
+				return;
+			}
+
+			List<(string part, bool highlight)> parts = new List<(string, bool)>();
+
+			if (_useRegexSearch && _currentRegex != null)
+			{
+				int lastIndex = 0;
+				foreach (Match m in _currentRegex.Matches(text))
+				{
+					if (m.Index > lastIndex)
+					{
+						parts.Add((text.Substring(lastIndex, m.Index - lastIndex), false));
+					}
+					parts.Add((text.Substring(m.Index, m.Length), true));
+					lastIndex = m.Index + m.Length;
+				}
+				if (lastIndex < text.Length)
+				{
+					parts.Add((text.Substring(lastIndex), false));
+				}
+			}
+			else
+			{
+				StringComparison comp = _caseSensitiveSearch ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase;
+				int start = 0;
+				while (true)
+				{
+					int idx = text.IndexOf(_currentSearchTerm, start, comp);
+					if (idx < 0)
+					{
+						parts.Add((text.Substring(start), false));
+						break;
+					}
+					if (idx > start)
+					{
+						parts.Add((text.Substring(start, idx - start), false));
+					}
+					parts.Add((text.Substring(idx, _currentSearchTerm.Length), true));
+					start = idx + _currentSearchTerm.Length;
+					if (start >= text.Length)
+						break;
+				}
+			}
+
+			int x = bounds.Left;
+			foreach (var (part, highlight) in parts)
+			{
+				if (string.IsNullOrEmpty(part))
+					continue;
+				var size = TextRenderer.MeasureText(g, part, font, new Size(int.MaxValue, int.MaxValue), format);
+				var rect = new Rectangle(x, bounds.Top, size.Width, bounds.Height);
+				if (highlight)
+				{
+					Color back = selected ? Color.Gold : Color.Yellow;
+					using (var brush = new SolidBrush(back))
+					{
+						g.FillRectangle(brush, rect);
+					}
+				}
+				TextRenderer.DrawText(g, part, font, rect, textColor, format);
+				x += size.Width;
+				if (x > bounds.Right)
+					break;
+			}
 		}
 	}
 }

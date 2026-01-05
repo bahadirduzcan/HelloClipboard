@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Drawing;
+using System.Runtime.InteropServices;
 using System.Windows.Forms;
 
 namespace HelloClipboard
@@ -9,6 +10,11 @@ namespace HelloClipboard
 		private readonly MainForm _mainForm;
 
 		private float _textZoom = 1.0f;
+		private string _fullText = string.Empty;
+		private bool _fullyLoaded = false;
+		private int _loadedUntilIndex = 0;
+		private const int LinesPerChunk = 1000;
+		private const int PreloadThresholdLines = 50;
 
 		public ClipDetailText(MainForm mainForm, ClipboardItem item)
 		{
@@ -20,6 +26,10 @@ namespace HelloClipboard
 
 			this.MouseWheel += ClipDetail_MouseWheel;
 			richTextBox1.MouseWheel += ClipDetail_MouseWheel;
+			richTextBox1.DetectUrls = false;
+			richTextBox1.ReadOnly = true;
+			richTextBox1.VScroll += RichTextBox1_VScroll;
+			richTextBox1.Resize += RichTextBox1_Resize;
 
 			SetupTextMode(item.Content);
 		}
@@ -27,16 +37,27 @@ namespace HelloClipboard
 		// ---------------- TEXT MODE ----------------
 		private void SetupTextMode(string text)
 		{
+			_fullText = text ?? string.Empty;
+			_fullyLoaded = false;
+			_loadedUntilIndex = 0;
+
 			richTextBox1.Visible = true;
 			richTextBox1.WordWrap = false;
 			richTextBox1.ScrollBars = RichTextBoxScrollBars.Both;
-			richTextBox1.Text = text;
+			LoadNextChunk(reset: true);
 
 			float baseFontSize = 12;
 
 			_textZoom = 0.8f;
 
 			richTextBox1.Font = new Font(richTextBox1.Font.FontFamily, baseFontSize * _textZoom);
+		}
+
+		public void UpdateItem(ClipboardItem item)
+		{
+			string shortTitle = item.Title.Length > Constants.MaxDetailFormTitleLength ? item.Title.Substring(0, Constants.MaxDetailFormTitleLength) + "…" : item.Title;
+			this.Text = $"{shortTitle} - {Constants.AppName}";
+			SetupTextMode(item.Content);
 		}
 
 
@@ -69,15 +90,129 @@ namespace HelloClipboard
 		private const int WM_HSCROLL = 0x114;
 		private const int SB_LINELEFT = 0;
 		private const int SB_LINERIGHT = 1;
+		private const int WM_SETREDRAW = 0x000B;
 
 		[System.Runtime.InteropServices.DllImport("user32.dll")]
 		private static extern int SendMessage(IntPtr hWnd, int Msg, IntPtr wParam, IntPtr lParam);
+		[DllImport("user32.dll")]
+		private static extern IntPtr SendMessage(IntPtr hWnd, int Msg, bool wParam, int lParam);
 
 
 		// ---------------- COPY ----------------
 		private void button1_copy_Click(object sender, EventArgs e)
 		{
 			_mainForm?.copyToolStripMenuItem_Click(sender, e);
+		}
+
+		// Büyük metinleri hızlı yüklemek için yeniden çizimi geçici kapat
+		private void SetTextFast(string textToDisplay, bool resetSelection)
+		{
+			if (richTextBox1.IsHandleCreated)
+			{
+				SendMessage(richTextBox1.Handle, WM_SETREDRAW, false, 0);
+			}
+			richTextBox1.SuspendLayout();
+			richTextBox1.Clear();
+			richTextBox1.Text = textToDisplay;
+			if (resetSelection)
+			{
+				richTextBox1.SelectionStart = 0;
+				richTextBox1.SelectionLength = 0;
+			}
+			richTextBox1.ResumeLayout();
+			if (richTextBox1.IsHandleCreated)
+			{
+				SendMessage(richTextBox1.Handle, WM_SETREDRAW, true, 0);
+				richTextBox1.Invalidate();
+			}
+		}
+
+		private void AppendTextFast(string chunk)
+		{
+			if (string.IsNullOrEmpty(chunk))
+				return;
+
+			if (richTextBox1.IsHandleCreated)
+			{
+				SendMessage(richTextBox1.Handle, WM_SETREDRAW, false, 0);
+			}
+			int selectionStart = richTextBox1.SelectionStart;
+			richTextBox1.SuspendLayout();
+			richTextBox1.SelectionStart = richTextBox1.TextLength;
+			richTextBox1.SelectionLength = 0;
+			richTextBox1.SelectedText = chunk;
+			richTextBox1.SelectionStart = selectionStart;
+			richTextBox1.SelectionLength = 0;
+			richTextBox1.ResumeLayout();
+			if (richTextBox1.IsHandleCreated)
+			{
+				SendMessage(richTextBox1.Handle, WM_SETREDRAW, true, 0);
+				richTextBox1.Invalidate();
+			}
+		}
+
+		private void LoadNextChunk(bool reset)
+		{
+			if (_fullyLoaded)
+				return;
+
+			int startIndex = _loadedUntilIndex;
+			int targetLines = 0;
+			int length = _fullText.Length;
+			int end = startIndex;
+
+			while (end < length && targetLines < LinesPerChunk)
+			{
+				if (_fullText[end] == '\n')
+					targetLines++;
+				end++;
+			}
+
+			if (end >= length)
+			{
+				end = length;
+				_fullyLoaded = true;
+			}
+
+			string chunk = _fullText.Substring(startIndex, end - startIndex);
+			if (reset)
+			{
+				SetTextFast(chunk, resetSelection: true);
+			}
+			else
+			{
+				AppendTextFast(chunk);
+			}
+
+			_loadedUntilIndex = end;
+		}
+
+		private void TryLoadMoreIfNearBottom()
+		{
+			if (_fullyLoaded)
+				return;
+
+			int lastChar = richTextBox1.GetCharIndexFromPosition(new Point(1, richTextBox1.ClientSize.Height - 1));
+			int lastLine = richTextBox1.GetLineFromCharIndex(lastChar);
+			int totalLines = richTextBox1.Lines.Length;
+
+			while (!_fullyLoaded && (totalLines - lastLine) < PreloadThresholdLines)
+			{
+				LoadNextChunk(reset: false);
+				lastChar = richTextBox1.GetCharIndexFromPosition(new Point(1, richTextBox1.ClientSize.Height - 1));
+				lastLine = richTextBox1.GetLineFromCharIndex(lastChar);
+				totalLines = richTextBox1.Lines.Length;
+			}
+		}
+
+		private void RichTextBox1_VScroll(object sender, EventArgs e)
+		{
+			TryLoadMoreIfNearBottom();
+		}
+
+		private void RichTextBox1_Resize(object sender, EventArgs e)
+		{
+			TryLoadMoreIfNearBottom();
 		}
 	}
 }

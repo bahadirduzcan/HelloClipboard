@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
+using System.Drawing.Imaging;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -22,6 +24,34 @@ namespace HelloClipboard
 		public static TrayApplicationContext Instance { get; private set; }
 		private bool _suppressClipboardEvents = false;
 		private HistoryHelper historyHelper { get; set; }
+		private uint _lastClipboardSequenceNumber;
+		private string _lastTextContent;
+		private string _lastFileContent;
+		private string _lastImageSignature;
+		private HotkeyWindow _hotkeyWindow;
+		private bool _hotkeyRegistered;
+		public bool HotkeyRegistered => _hotkeyRegistered;
+		private bool _privacyModeActive;
+		private DateTime _privacyModeUntil;
+		private ToolStripMenuItem _trayPrivacyMenuItem;
+
+		private const int ClipboardMaxAttempts = 4;
+		private const int ClipboardFastRetryDelayMs = 25;
+		private const int HotkeyId = 1001;
+		private static readonly TimeSpan DefaultPrivacyDuration = TimeSpan.FromMinutes(10);
+
+		internal const int WM_HOTKEY = 0x0312;
+		private const uint MOD_ALT = 0x0001;
+		private const uint MOD_CONTROL = 0x0002;
+		private const uint MOD_SHIFT = 0x0004;
+		private const uint MOD_WIN = 0x0008;
+
+		[DllImport("user32.dll")]
+		private static extern uint GetClipboardSequenceNumber();
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern bool RegisterHotKey(IntPtr hWnd, int id, uint fsModifiers, uint vk);
+		[DllImport("user32.dll", SetLastError = true)]
+		private static extern bool UnregisterHotKey(IntPtr hWnd, int id);
 
 		public TrayApplicationContext()
 		{
@@ -39,6 +69,10 @@ namespace HelloClipboard
 				var loadedItems = historyHelper.LoadHistoryFromFiles();
 				foreach (var item in loadedItems)
 				{
+					if (item.ContentHash != null && TempConfigLoader.Current.PinnedHashes.Contains(item.ContentHash))
+					{
+						item.IsPinned = true;
+					}
 					_clipboardCache.Add(item);
 					if (item.ContentHash != null)
 					{
@@ -72,6 +106,8 @@ namespace HelloClipboard
 			trayMenu.Items.Add("Show", null, (s, e) => ShowMainWindow());
 			trayMenu.Items.Add("Exit", null, (s, e) => ExitApplication());
 			trayMenu.Items.Add(new ToolStripMenuItem("Reset Window", null, (s, e) => ResetFormPositionAndSize()));
+			_trayPrivacyMenuItem = new ToolStripMenuItem("Enable Private Mode (10 min)", null, (s, e) => TogglePrivacyMode());
+			trayMenu.Items.Add(_trayPrivacyMenuItem);
 			_trayIcon.ContextMenuStrip = trayMenu;
 			_trayIcon.DoubleClick += (s, e) =>
 			{
@@ -96,6 +132,8 @@ namespace HelloClipboard
 			{
 				StartAutoUpdateCheck();
 			}
+
+			TryRegisterGlobalHotkey();
 
 			TempConfigLoader.Current.AdminPriviligesRequested = false;
 			TempConfigLoader.Save();
@@ -130,6 +168,7 @@ namespace HelloClipboard
 
 				_clipboardCache.Clear();
 				_clipboardHashPool.Clear();
+				TempConfigLoader.Current.PinnedHashes.Clear();
 
 				if (SettingsLoader.Current.EnableClipboardHistory)
 				{
@@ -179,32 +218,180 @@ namespace HelloClipboard
 			_suppressClipboardEvents = value;
 		}
 
+		public bool ReloadGlobalHotkey()
+		{
+			UnregisterGlobalHotkey();
+			return TryRegisterGlobalHotkey();
+		}
+
+		private bool TryRegisterGlobalHotkey()
+		{
+			if (!SettingsLoader.Current.EnableGlobalHotkey)
+				return false;
+
+			if (SettingsLoader.Current.HotkeyKey == Keys.None)
+				return false;
+
+			if (_hotkeyWindow == null)
+			{
+				_hotkeyWindow = new HotkeyWindow(ToggleMainWindowFromHotkey);
+			}
+
+			UnregisterGlobalHotkey();
+
+			uint modifiers = BuildModifierFlags(SettingsLoader.Current.HotkeyModifiers);
+			uint key = (uint)SettingsLoader.Current.HotkeyKey;
+
+			bool ok = RegisterHotKey(_hotkeyWindow.Handle, HotkeyId, modifiers, key);
+			_hotkeyRegistered = ok;
+#if DEBUG
+			if (!ok)
+			{
+				System.Diagnostics.Debug.WriteLine("Global hotkey registration failed.");
+			}
+#endif
+			return ok;
+		}
+
+		private void UnregisterGlobalHotkey()
+		{
+			if (_hotkeyWindow == null || !_hotkeyRegistered)
+				return;
+			try
+			{
+				UnregisterHotKey(_hotkeyWindow.Handle, HotkeyId);
+			}
+			catch { }
+			_hotkeyRegistered = false;
+		}
+
+		private uint BuildModifierFlags(Keys modifiers)
+		{
+			uint mods = 0;
+			if (modifiers.HasFlag(Keys.Control)) mods |= MOD_CONTROL;
+			if (modifiers.HasFlag(Keys.Alt)) mods |= MOD_ALT;
+			if (modifiers.HasFlag(Keys.Shift)) mods |= MOD_SHIFT;
+			if (modifiers.HasFlag(Keys.LWin) || modifiers.HasFlag(Keys.RWin)) mods |= MOD_WIN;
+			return mods;
+		}
+
+		private void TogglePrivacyMode()
+		{
+			if (_privacyModeActive)
+			{
+				DisablePrivacyMode();
+			}
+			else
+			{
+				EnablePrivacyMode(DefaultPrivacyDuration);
+			}
+		}
+
+		private void EnablePrivacyMode(TimeSpan duration)
+		{
+			_privacyModeActive = true;
+			_privacyModeUntil = DateTime.UtcNow.Add(duration);
+			UpdatePrivacyMenuText();
+			_trayIcon.ShowBalloonTip(2000, $"{Constants.AppName}", $"Private Mode enabled for {duration.TotalMinutes} minutes.", ToolTipIcon.Info);
+			Task.Run(async () =>
+			{
+				while (_privacyModeActive && DateTime.UtcNow < _privacyModeUntil)
+				{
+					await Task.Delay(TimeSpan.FromSeconds(10));
+				}
+				if (_privacyModeActive && DateTime.UtcNow >= _privacyModeUntil)
+				{
+					DisablePrivacyMode();
+				}
+			});
+		}
+
+		private void DisablePrivacyMode()
+		{
+			_privacyModeActive = false;
+			UpdatePrivacyMenuText();
+			_trayIcon.ShowBalloonTip(2000, $"{Constants.AppName}", "Private Mode disabled.", ToolTipIcon.Info);
+		}
+
+		private void UpdatePrivacyMenuText()
+		{
+			if (_trayPrivacyMenuItem == null)
+				return;
+			if (_privacyModeActive)
+			{
+				var remaining = _privacyModeUntil - DateTime.UtcNow;
+				if (remaining < TimeSpan.Zero) remaining = TimeSpan.Zero;
+				_trayPrivacyMenuItem.Text = $"Disable Private Mode ({Math.Ceiling(remaining.TotalMinutes)} min left)";
+			}
+			else
+			{
+				_trayPrivacyMenuItem.Text = "Enable Private Mode (10 min)";
+			}
+		}
+
+		private void ToggleMainWindowFromHotkey()
+		{
+			if (ApplicationExiting)
+				return;
+
+			if (_form != null && !_form.IsDisposed && _form.Visible)
+			{
+				HideMainWindow();
+			}
+			else
+			{
+				ShowMainWindow();
+			}
+		}
+
 		private async void OnClipboardUpdate(object sender, EventArgs e)
 		{
 			if (_suppressClipboardEvents)
 				return;
 
-			// Panonun içeriğinin hazır olması için çok kısa bir bekleme (50-100ms)
-			// Bazı uygulamalar veriyi parçalı yazar.
-			await Task.Delay(100);
+			if (_privacyModeActive)
+			{
+				if (DateTime.UtcNow >= _privacyModeUntil)
+				{
+					DisablePrivacyMode();
+				}
+				else
+				{
+					return;
+				}
+			}
 
-			for (int retry = 0; retry < 5; retry++) // 5 kez deneme yap
+			// Yinelenen olayları atla
+			uint seq = GetClipboardSequenceNumber();
+			if (seq != 0 && seq == _lastClipboardSequenceNumber)
+				return;
+			_lastClipboardSequenceNumber = seq;
+
+			await TryReadClipboardAsync();
+		}
+
+		private async Task TryReadClipboardAsync()
+		{
+			for (int attempt = 0; attempt < ClipboardMaxAttempts; attempt++)
 			{
 				try
 				{
-					if (Clipboard.ContainsText())
+					var dataObj = Clipboard.GetDataObject();
+
+					if (dataObj != null && dataObj.GetDataPresent(DataFormats.UnicodeText, true))
 					{
-						string text = Clipboard.GetText();
+						string text = dataObj.GetData(DataFormats.UnicodeText, true) as string;
 						if (!string.IsNullOrEmpty(text))
 						{
 							AddToCache(ClipboardItemType.Text, text);
-							return; // Başarılı, döngüden çık
+							return;
 						}
 					}
-					else if (Clipboard.ContainsFileDropList())
+
+					if (dataObj != null && dataObj.GetDataPresent(DataFormats.FileDrop))
 					{
-						var files = Clipboard.GetFileDropList();
-						if (files.Count > 0)
+						var files = dataObj.GetData(DataFormats.FileDrop) as string[];
+						if (files != null && files.Length > 0)
 						{
 							foreach (var file in files)
 							{
@@ -213,7 +400,8 @@ namespace HelloClipboard
 							return;
 						}
 					}
-					else if (Clipboard.ContainsImage())
+
+					if (dataObj != null && dataObj.GetDataPresent(DataFormats.Bitmap))
 					{
 						var image = Clipboard.GetImage();
 						if (image != null)
@@ -224,20 +412,21 @@ namespace HelloClipboard
 						}
 					}
 
-					// Eğer buraya geldiyse pano boş olabilir veya henüz hazır değildir
-					break;
+					// Pano hazır değilse kısa bir beklemeyle tekrar dene
+					if (attempt < ClipboardMaxAttempts - 1)
+						await Task.Delay(ClipboardFastRetryDelayMs);
 				}
-				catch (System.Runtime.InteropServices.ExternalException)
+				catch (ExternalException)
 				{
-					// Pano o an kilitli demektir. 50ms bekle ve tekrar dene.
-					await Task.Delay(50);
+					if (attempt < ClipboardMaxAttempts - 1)
+						await Task.Delay(ClipboardFastRetryDelayMs);
 				}
 				catch (Exception ex)
 				{
 #if DEBUG
 					System.Diagnostics.Debug.WriteLine($"Clipboard Error: {ex.Message}");
 #endif
-					break;
+					return;
 				}
 			}
 		}
@@ -246,6 +435,20 @@ namespace HelloClipboard
 		{
 			if (string.IsNullOrWhiteSpace(textContent) && imageContent == null)
 				return;
+
+			if (type == ClipboardItemType.Text && textContent == _lastTextContent)
+				return;
+
+			if (type == ClipboardItemType.File && textContent == _lastFileContent)
+				return;
+
+			if (type == ClipboardItemType.Image && imageContent != null)
+			{
+				string signature = $"{imageContent.Width}x{imageContent.Height}_{imageContent.PixelFormat}";
+				if (signature == _lastImageSignature)
+					return;
+				_lastImageSignature = signature;
+			}
 
 			string calculatedHash = null;
 			ClipboardItem existingItem = null;
@@ -301,18 +504,36 @@ namespace HelloClipboard
 			}
 
 			var item = new ClipboardItem(_clipboardCache.Count, type, textContent, newTitle, imageContent, calculatedHash);
+			if (item.ContentHash != null && TempConfigLoader.Current.PinnedHashes.Contains(item.ContentHash))
+			{
+				item.IsPinned = true;
+			}
 
 			if (SettingsLoader.Current.EnableClipboardHistory && item.ContentHash != null)
 			{
-				historyHelper.SaveItemToHistoryFile(item);
+				// Disk yazımını UI işleyicisinden ayır
+				Task.Run(() => historyHelper.SaveItemToHistoryFile(item));
 			}
 
-			_clipboardCache.Add(item);
+			if (item.IsPinned)
+			{
+				_clipboardCache.Add(item);
+			}
+			else
+			{
+				var insertIndex = _clipboardCache.TakeWhile(i => i.IsPinned).Count();
+				_clipboardCache.Insert(insertIndex, item);
+			}
 
 			if (item.ContentHash != null)
 			{
 				_clipboardHashPool.Add(item.ContentHash);
 			}
+
+			if (type == ClipboardItemType.Text)
+				_lastTextContent = textContent;
+			else if (type == ClipboardItemType.File)
+				_lastFileContent = textContent;
 
 			if (!_form.IsDisposed)
 			{
@@ -322,6 +543,15 @@ namespace HelloClipboard
 			if (_clipboardCache.Count > SettingsLoader.Current.MaxHistoryCount)
 			{
 				var oldestItem = _clipboardCache[0];
+
+				if (oldestItem.IsPinned)
+				{
+					// Pinned kalemleri atlamadan en eski pinlenmeyen öğeyi bul
+					var removable = _clipboardCache.FirstOrDefault(i => !i.IsPinned);
+					if (removable == null)
+						return;
+					oldestItem = removable;
+				}
 
 				if (oldestItem.ContentHash != null)
 				{
@@ -428,8 +658,20 @@ namespace HelloClipboard
 
 		public void HideMainWindow()
 		{
-			_form?.Hide();
-			_form?.CloseDetailFormIfAvaible();
+			if (_form == null)
+				return;
+
+			_form.CloseDetailFormIfAvaible();
+
+			foreach (Form owned in _form.OwnedForms)
+			{
+				if (owned != null && !owned.IsDisposed)
+				{
+					try { owned.Close(); } catch { }
+				}
+			}
+
+			_form.Hide();
 			if (!_trayMinimizedNotifyShown)
 			{
 				_trayIcon.ShowBalloonTip(1000, $"{Constants.AppName}", "Application minimized to tray.", ToolTipIcon.Info);
@@ -447,11 +689,38 @@ namespace HelloClipboard
 				_form.Close();
 				_form.Dispose();
 			}
+			UnregisterGlobalHotkey();
+			_hotkeyWindow?.Dispose();
 			_trayIcon.Visible = false;
 			_trayIcon.Dispose();
 			ExitThread();
 		}
 
 		#endregion
+	}
+
+	internal class HotkeyWindow : NativeWindow, IDisposable
+	{
+		private readonly Action _onHotkey;
+
+		public HotkeyWindow(Action onHotkey)
+		{
+			_onHotkey = onHotkey;
+			CreateHandle(new CreateParams());
+		}
+
+		protected override void WndProc(ref Message m)
+		{
+			if (m.Msg == TrayApplicationContext.WM_HOTKEY)
+			{
+				_onHotkey?.Invoke();
+			}
+			base.WndProc(ref m);
+		}
+
+		public void Dispose()
+		{
+			DestroyHandle();
+		}
 	}
 }

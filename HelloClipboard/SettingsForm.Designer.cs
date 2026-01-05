@@ -41,6 +41,9 @@
 			this.checkBox1_showInTaskbar = new System.Windows.Forms.CheckBox();
 			this.checkBox2_openWithSingleClick = new System.Windows.Forms.CheckBox();
 			this.checkBox1_autoHideWhenUnfocus = new System.Windows.Forms.CheckBox();
+			this.label2_hotkey = new System.Windows.Forms.Label();
+			this.textBox_hotkey = new System.Windows.Forms.TextBox();
+			this.checkBox_enableHotkey = new System.Windows.Forms.CheckBox();
 			this.SuspendLayout();
 			// 
 			// checkBox1_startWithWindows
@@ -115,7 +118,7 @@
 			// 
 			this.button2_Defaults.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
-			this.button2_Defaults.Location = new System.Drawing.Point(12, 396);
+			this.button2_Defaults.Location = new System.Drawing.Point(12, 438);
 			this.button2_Defaults.Name = "button2_Defaults";
 			this.button2_Defaults.Size = new System.Drawing.Size(440, 33);
 			this.button2_Defaults.TabIndex = 9;
@@ -195,11 +198,43 @@
 			this.checkBox1_autoHideWhenUnfocus.UseVisualStyleBackColor = true;
 			this.checkBox1_autoHideWhenUnfocus.CheckedChanged += new System.EventHandler(this.checkBox1_autoHideWhenUnfocus_CheckedChanged);
 			// 
+			// label2_hotkey
+			// 
+			this.label2_hotkey.AutoSize = true;
+			this.label2_hotkey.Location = new System.Drawing.Point(12, 363);
+			this.label2_hotkey.Name = "label2_hotkey";
+			this.label2_hotkey.Size = new System.Drawing.Size(167, 21);
+			this.label2_hotkey.TabIndex = 17;
+			this.label2_hotkey.Text = "Show Window Hotkey";
+			// 
+			// textBox_hotkey
+			// 
+			this.textBox_hotkey.Location = new System.Drawing.Point(12, 387);
+			this.textBox_hotkey.Name = "textBox_hotkey";
+			this.textBox_hotkey.ReadOnly = true;
+			this.textBox_hotkey.Size = new System.Drawing.Size(215, 29);
+			this.textBox_hotkey.TabIndex = 18;
+			this.textBox_hotkey.KeyDown += new System.Windows.Forms.KeyEventHandler(this.textBox_hotkey_KeyDown);
+			// 
+			// checkBox_enableHotkey
+			// 
+			this.checkBox_enableHotkey.AutoSize = true;
+			this.checkBox_enableHotkey.Location = new System.Drawing.Point(248, 389);
+			this.checkBox_enableHotkey.Name = "checkBox_enableHotkey";
+			this.checkBox_enableHotkey.Size = new System.Drawing.Size(201, 25);
+			this.checkBox_enableHotkey.TabIndex = 19;
+			this.checkBox_enableHotkey.Text = "Enable Global Hotkey";
+			this.checkBox_enableHotkey.UseVisualStyleBackColor = true;
+			this.checkBox_enableHotkey.CheckedChanged += new System.EventHandler(this.checkBox_enableHotkey_CheckedChanged);
+			// 
 			// SettingsForm
 			// 
 			this.AutoScaleDimensions = new System.Drawing.SizeF(9F, 21F);
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-			this.ClientSize = new System.Drawing.Size(464, 441);
+			this.ClientSize = new System.Drawing.Size(464, 483);
+			this.Controls.Add(this.checkBox_enableHotkey);
+			this.Controls.Add(this.textBox_hotkey);
+			this.Controls.Add(this.label2_hotkey);
 			this.Controls.Add(this.checkBox1_autoHideWhenUnfocus);
 			this.Controls.Add(this.checkBox2_openWithSingleClick);
 			this.Controls.Add(this.checkBox1_showInTaskbar);
@@ -216,9 +251,9 @@
 			this.Font = new System.Drawing.Font("Segoe UI", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
 			this.Margin = new System.Windows.Forms.Padding(4, 5, 4, 5);
 			this.MaximizeBox = false;
-			this.MaximumSize = new System.Drawing.Size(480, 480);
+			this.MaximumSize = new System.Drawing.Size(480, 520);
 			this.MinimizeBox = false;
-			this.MinimumSize = new System.Drawing.Size(480, 480);
+			this.MinimumSize = new System.Drawing.Size(480, 520);
 			this.Name = "SettingsForm";
 			this.ShowIcon = false;
 			this.ShowInTaskbar = false;
@@ -244,5 +279,8 @@
 		private System.Windows.Forms.CheckBox checkBox1_showInTaskbar;
 		private System.Windows.Forms.CheckBox checkBox2_openWithSingleClick;
 		private System.Windows.Forms.CheckBox checkBox1_autoHideWhenUnfocus;
+		private System.Windows.Forms.Label label2_hotkey;
+		private System.Windows.Forms.TextBox textBox_hotkey;
+		private System.Windows.Forms.CheckBox checkBox_enableHotkey;
 	}
 }
