@@ -460,6 +460,9 @@ namespace HelloClipboard
 
 			int index = MessagesListBox.IndexFromPoint(e.Location);
 			OpenDetailForIndex(index);
+
+			// Detay formu otomatik açılırken odağı çalmasın diye arama kutusuna geri ver
+			textBox1_search.Focus();
 		}
 
 		private void MainForm_Load(object sender, EventArgs e)
