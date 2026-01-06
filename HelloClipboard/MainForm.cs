@@ -6,8 +6,11 @@ using System.Text.RegularExpressions;
 using System.Diagnostics;
 using System.Drawing;
 using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
+using System.Text;
 using System.Windows.Forms;
+using System.Drawing.Imaging;
 
 namespace HelloClipboard
 {
@@ -448,6 +451,12 @@ namespace HelloClipboard
 			{
 				pinToolStripMenuItem.Checked = selected.IsPinned;
 				pinToolStripMenuItem.Text = selected.IsPinned ? "Unpin" : "Pin";
+
+				var isUrl = selected.ItemType == ClipboardItemType.Text && IsValidUrl(selected.Content);
+				openUrlToolStripMenuItem.Visible = isUrl;
+
+				var fileExists = selected.ItemType != ClipboardItemType.File || (!string.IsNullOrWhiteSpace(selected.Content) && File.Exists(selected.Content));
+				saveToFileToolStripMenuItem.Enabled = fileExists;
 			}
 		}
 		private void MessagesListBox_MouseClick(object sender, MouseEventArgs e)
@@ -779,7 +788,142 @@ namespace HelloClipboard
 
 		private void saveToFileToolStripMenuItem_Click(object sender, EventArgs e)
 		{
-			ShowUnderDevelopmentDialog("Save to File");
+			if (!(MessagesListBox.SelectedItem is ClipboardItem selected))
+				return;
+
+			try
+			{
+				if (selected.ItemType == ClipboardItemType.Image)
+				{
+					SaveImageItem(selected);
+				}
+				else if (selected.ItemType == ClipboardItemType.File)
+				{
+					SaveFileItem(selected);
+				}
+				else
+				{
+					SaveTextItem(selected);
+				}
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"Kaydetme sırasında hata oluştu.\n{ex.Message}", "Kaydetme hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private void SaveImageItem(ClipboardItem item)
+		{
+			if (item.ImageContent == null)
+			{
+				MessageBox.Show("Kaydedilecek görsel bulunamadı.", "Görsel kaydetme", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			using (var dialog = new SaveFileDialog
+			{
+				Title = "Resmi Kaydet",
+				Filter = "PNG Image|*.png|JPEG Image|*.jpg;*.jpeg|Bitmap Image|*.bmp|All files|*.*",
+				FileName = "clipboard"
+			})
+			{
+				if (dialog.ShowDialog(this) == DialogResult.OK)
+				{
+					var ext = Path.GetExtension(dialog.FileName)?.ToLowerInvariant();
+					var format = ImageFormat.Png;
+					if (ext == ".jpg" || ext == ".jpeg")
+						format = ImageFormat.Jpeg;
+					else if (ext == ".bmp")
+						format = ImageFormat.Bmp;
+
+					item.ImageContent.Save(dialog.FileName, format);
+				}
+			}
+		}
+
+		private void SaveFileItem(ClipboardItem item)
+		{
+			var sourcePath = item.Content;
+			if (string.IsNullOrWhiteSpace(sourcePath) || !File.Exists(sourcePath))
+			{
+				MessageBox.Show("Kaynak dosya bulunamadı.", "Dosya kaydetme", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			using (var dialog = new SaveFileDialog
+			{
+				Title = "Dosyayı Farklı Kaydet",
+				FileName = Path.GetFileName(sourcePath),
+				Filter = "All files|*.*",
+				InitialDirectory = Path.GetDirectoryName(sourcePath)
+			})
+			{
+				if (dialog.ShowDialog(this) == DialogResult.OK)
+				{
+					File.Copy(sourcePath, dialog.FileName, true);
+				}
+			}
+		}
+
+		private void SaveTextItem(ClipboardItem item)
+		{
+			var content = item.Content ?? string.Empty;
+
+			using (var dialog = new SaveFileDialog
+			{
+				Title = "Metni Kaydet",
+				Filter = "Text File|*.txt|All files|*.*",
+				FileName = "clipboard.txt",
+				DefaultExt = "txt",
+				AddExtension = true
+			})
+			{
+				if (dialog.ShowDialog(this) == DialogResult.OK)
+				{
+					File.WriteAllText(dialog.FileName, content, Encoding.UTF8);
+				}
+			}
+		}
+
+		private void openUrlToolStripMenuItem_Click(object sender, EventArgs e)
+		{
+			if (!(MessagesListBox.SelectedItem is ClipboardItem selected))
+				return;
+
+			var url = selected.Content?.Trim();
+			if (!IsValidUrl(url))
+			{
+				MessageBox.Show("Geçerli bir URL bulunamadı.", "URL açma", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+				return;
+			}
+
+			try
+			{
+				Process.Start(new ProcessStartInfo
+				{
+					FileName = url,
+					UseShellExecute = true
+				});
+			}
+			catch (Exception ex)
+			{
+				MessageBox.Show($"URL açılamadı.\n{ex.Message}", "URL açma hatası", MessageBoxButtons.OK, MessageBoxIcon.Error);
+			}
+		}
+
+		private bool IsValidUrl(string text)
+		{
+			if (string.IsNullOrWhiteSpace(text))
+				return false;
+
+			text = text.Trim();
+
+			if (Uri.TryCreate(text, UriKind.Absolute, out var uri))
+			{
+				return uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps;
+			}
+
+			return false;
 		}
 
 		private async void checkUpdateToolStripMenuItem_Click(object sender, EventArgs e)

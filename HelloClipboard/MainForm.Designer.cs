@@ -35,6 +35,7 @@
 			this.contextMenuStrip1 = new System.Windows.Forms.ContextMenuStrip(this.components);
 			this.copyToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.saveToFileToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+			this.openUrlToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.pinToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
 			this.menuStrip1 = new System.Windows.Forms.MenuStrip();
 			this.infoToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -80,29 +81,38 @@
 			this.contextMenuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[] {
             this.copyToolStripMenuItem,
             this.saveToFileToolStripMenuItem,
+            this.openUrlToolStripMenuItem,
             this.pinToolStripMenuItem});
 			this.contextMenuStrip1.Name = "contextMenuStrip1";
-			this.contextMenuStrip1.Size = new System.Drawing.Size(133, 70);
+			this.contextMenuStrip1.Size = new System.Drawing.Size(181, 92);
 			this.contextMenuStrip1.Opening += new System.ComponentModel.CancelEventHandler(this.contextMenuStrip1_Opening);
 			// 
 			// copyToolStripMenuItem
 			// 
 			this.copyToolStripMenuItem.Name = "copyToolStripMenuItem";
-			this.copyToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.copyToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
 			this.copyToolStripMenuItem.Text = "Copy";
 			this.copyToolStripMenuItem.Click += new System.EventHandler(this.copyToolStripMenuItem_Click);
 			// 
 			// saveToFileToolStripMenuItem
 			// 
 			this.saveToFileToolStripMenuItem.Name = "saveToFileToolStripMenuItem";
-			this.saveToFileToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.saveToFileToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
 			this.saveToFileToolStripMenuItem.Text = "Save to file";
 			this.saveToFileToolStripMenuItem.Click += new System.EventHandler(this.saveToFileToolStripMenuItem_Click);
+			// 
+			// openUrlToolStripMenuItem
+			// 
+			this.openUrlToolStripMenuItem.Name = "openUrlToolStripMenuItem";
+			this.openUrlToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+			this.openUrlToolStripMenuItem.Text = "Open in browser";
+			this.openUrlToolStripMenuItem.Visible = false;
+			this.openUrlToolStripMenuItem.Click += new System.EventHandler(this.openUrlToolStripMenuItem_Click);
 			// 
 			// pinToolStripMenuItem
 			// 
 			this.pinToolStripMenuItem.Name = "pinToolStripMenuItem";
-			this.pinToolStripMenuItem.Size = new System.Drawing.Size(132, 22);
+			this.pinToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
 			this.pinToolStripMenuItem.Text = "Pin/Unpin";
 			this.pinToolStripMenuItem.Click += new System.EventHandler(this.pinToolStripMenuItem_Click);
 			// 
@@ -313,6 +323,7 @@
 		private System.Windows.Forms.ContextMenuStrip contextMenuStrip1;
 		private System.Windows.Forms.ToolStripMenuItem copyToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem saveToFileToolStripMenuItem;
+		private System.Windows.Forms.ToolStripMenuItem openUrlToolStripMenuItem;
 		private System.Windows.Forms.ToolStripMenuItem pinToolStripMenuItem;
 		private System.Windows.Forms.TextBox textBox1_search;
 		private System.Windows.Forms.PictureBox pictureBox1;
