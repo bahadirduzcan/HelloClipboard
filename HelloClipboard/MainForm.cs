@@ -48,6 +48,7 @@ namespace HelloClipboard
 			MessagesListBox.DisplayMember = "Title";
 			MessagesListBox.DrawMode = DrawMode.OwnerDrawFixed;
 			MessagesListBox.DrawItem += MessagesListBox_DrawItem;
+			MessagesListBox.Resize += (s, e) => MessagesListBox.Invalidate(); // force redraw so ellipsis reflows after resize
 
 			var enableClipboardHistory = SettingsLoader.Current.EnableClipboardHistory;
 
@@ -401,10 +402,7 @@ namespace HelloClipboard
 				}
 
 				EnsureDetailPosition(_detailImageForm, previousBounds);
-				if (!_detailImageForm.Visible)
-					_detailImageForm.Show();
-				else
-					_detailImageForm.BringToFront();
+				ShowDetailForm(_detailImageForm);
 
 				if (_detailTextForm != null && !_detailTextForm.IsDisposed)
 					_detailTextForm.Hide();
@@ -425,10 +423,7 @@ namespace HelloClipboard
 				}
 
 				EnsureDetailPosition(_detailTextForm, previousBounds);
-				if (!_detailTextForm.Visible)
-					_detailTextForm.Show();
-				else
-					_detailTextForm.BringToFront();
+				ShowDetailForm(_detailTextForm);
 
 				if (_detailImageForm != null && !_detailImageForm.IsDisposed)
 					_detailImageForm.Hide();
@@ -535,6 +530,12 @@ namespace HelloClipboard
 				}
 			}
 			_previousWindowState = this.WindowState;
+
+			if (_openDetailForm != null && !_openDetailForm.IsDisposed && _openDetailForm.Visible)
+			{
+				EnsureDetailPosition(_openDetailForm, Rectangle.Empty);
+				ShowDetailForm(_openDetailForm);
+			}
 		}
 
 		private void MainForm_Move(object sender, EventArgs e)
@@ -635,6 +636,20 @@ namespace HelloClipboard
 			{
 				PositionDetailForm(detailForm);
 			}
+		}
+
+		private void ShowDetailForm(Form detailForm)
+		{
+			if (detailForm == null || detailForm.IsDisposed)
+				return;
+
+			detailForm.TopMost = this.TopMost;
+			if (!detailForm.Visible)
+			{
+				detailForm.Show();
+			}
+			detailForm.BringToFront();
+			detailForm.Activate();
 		}
 
 		private void phoneSyncToolStripMenuItem_Click(object sender, EventArgs e)
