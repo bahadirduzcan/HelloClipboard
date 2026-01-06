@@ -30,7 +30,7 @@ namespace HelloClipboard.Html
   <div class='meta'>Version: {Application.ProductVersion}</div>
   <p>A modern, lightweight clipboard sharing tool for Windows.</p>
   <p>Synchronize your clipboard securely across platforms with ease.</p>
-  <p>Developed by <strong>Ali SARIASLAN</strong></p>
+  <p>Developed by <strong>Ali SARIASLAN</strong> &amp; <strong>Bahadır Düzcan</strong></p>
   <p>Contact: <a href='mailto:dev@alisariaslan.com'>dev@alisariaslan.com</a></p>
   <div class='footer'>
     GitHub: <a href='https://github.com/alisariaslan/HelloClipboard' target='_blank'>https://github.com/alisariaslan/HelloClipboard</a>

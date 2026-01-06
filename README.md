@@ -31,6 +31,11 @@ HelloClipboard runs in the background, tracks your clipboard history, lets you s
 1. Download installer from latest tag.
 2. Run `HelloClipboard_Installer.exe`.
 
+## Developers
+
+- Ali SARIASLAN  
+- Bahadır Düzcan
+
 ## 📬 Contact
 
 Report bugs or request features via GitHub Issues:
